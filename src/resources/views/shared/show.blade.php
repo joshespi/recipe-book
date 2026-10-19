@@ -44,41 +44,8 @@
         <header class="grid gap-5 md:grid-cols-5">
             <div class="space-y-3 md:col-span-3">
                 <h1 class="text-3xl font-semibold tracking-tight">{{ $recipe->title }}</h1>
-                @if ($recipe->description)<p class="text-stone-600 dark:text-stone-300">{{ $recipe->description }}</p>@endif
+                <x-recipe-details :recipe="$recipe" shared />
 
-                @if ($recipe->categories->isNotEmpty())
-                    <div class="flex flex-wrap gap-1.5">
-                        @foreach ($recipe->categories as $category)
-                            <a href="{{ route('browse', ['category' => $category->slug]) }}"><x-category-chip :category="$category" /></a>
-                        @endforeach
-                    </div>
-                @endif
-
-                @if ($recipe->tags->isNotEmpty())
-                    <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
-                        @foreach ($recipe->tags as $tag)
-                            <a href="{{ route('browse', ['tag' => $tag->slug]) }}" class="hover:text-amber-700 dark:hover:text-amber-400">#{{ $tag->name }}</a>
-                        @endforeach
-                    </p>
-                @endif
-
-                <dl class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                    @if ($recipe->prep_minutes !== null)<div><dt class="text-stone-500">Prep</dt><dd class="font-medium">{{ $recipe->prep_minutes }} min</dd></div>@endif
-                    @if ($recipe->cook_minutes !== null)<div><dt class="text-stone-500">Cook</dt><dd class="font-medium">{{ $recipe->cook_minutes }} min</dd></div>@endif
-                    @if ($recipe->total_minutes !== null)<div><dt class="text-stone-500">Total</dt><dd class="font-medium">{{ $recipe->total_minutes }} min</dd></div>@endif
-                    @if ($recipe->servings)<div><dt class="text-stone-500">Serves</dt><dd class="font-medium">{{ \App\Support\Quantity::format($recipe->servings) }}{{ $recipe->yield_label ? ' ('.$recipe->yield_label.')' : '' }}</dd></div>@endif
-                    @if ($recipe->cook_logs_count)<div><dt class="text-stone-500">Made</dt><dd class="font-medium">{{ $recipe->cook_logs_count }}×</dd></div>@endif
-                </dl>
-
-                @if ($recipe->source_name || $recipe->source_url)
-                    <p class="text-sm text-stone-500">Source:
-                        @if ($recipe->source_url)
-                            <a href="{{ $recipe->source_url }}" target="_blank" rel="noopener noreferrer nofollow" class="text-amber-700 underline dark:text-amber-400">{{ $recipe->source_name ?: parse_url($recipe->source_url, PHP_URL_HOST) }}</a>
-                        @else
-                            {{ $recipe->source_name }}
-                        @endif
-                    </p>
-                @endif
 
                 <div class="flex flex-wrap gap-2 print:hidden">
                     <a href="{{ route('shared.cook', $recipe->share_token) }}" class="btn-primary" x-data x-on:click="$el.search = location.search">👩‍🍳 Cook mode</a>
@@ -93,12 +60,7 @@
 
         <livewire:recipes.scaler :recipe="$recipe" :key="'scaler-'.$recipe->id" />
 
-        @if ($recipe->notes)
-            <section class="card p-4">
-                <h2 class="mb-2 text-lg font-semibold">Notes</h2>
-                <p class="whitespace-pre-line">{{ $recipe->notes }}</p>
-            </section>
-        @endif
+        <x-recipe-notes :recipe="$recipe" />
 
         <livewire:recipes.photo-gallery :recipe="$recipe" :key="'gallery-'.$recipe->id" />
     </article>

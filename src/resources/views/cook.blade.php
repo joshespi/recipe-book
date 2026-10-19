@@ -47,11 +47,7 @@
                                 <label class="flex cursor-pointer items-start gap-3 rounded-lg p-3 text-xl hover:bg-stone-100 dark:hover:bg-stone-900">
                                     <input type="checkbox" class="mt-1.5 size-5 shrink-0 rounded border-stone-400 text-amber-600 focus:ring-amber-500"
                                            x-on:change="toggleIngredient('{{ $key }}')" :checked="checked['{{ $key }}']" />
-                                    <span :class="checked['{{ $key }}'] && 'text-stone-400 line-through dark:text-stone-600'">
-                                        @if ($line->quantity)<strong>{{ $line->quantity }}</strong>@endif
-                                        @if ($line->unit) {{ $line->unit }}@endif
-                                        {{ $line->name }}@if ($line->note)<span class="text-stone-500">, {{ $line->note }}</span>@endif
-                                    </span>
+                                    <x-ingredient-line :line="$line" ::class="checked['{{ $key }}'] && 'text-stone-400 line-through dark:text-stone-600'" />
                                 </label>
                             </li>
                         @endforeach

@@ -56,11 +56,7 @@
                     @foreach ($section['lines'] as $line)
                         <li class="flex gap-2">
                             <span class="mt-2 size-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden="true"></span>
-                            <span>
-                                @if ($line->quantity)<strong class="font-semibold">{{ $line->quantity }}</strong>@endif
-                                @if ($line->unit) {{ $line->unit }}@endif
-                                {{ $line->name }}@if ($line->note)<span class="text-stone-500 dark:text-stone-400">, {{ $line->note }}</span>@endif
-                            </span>
+                            <x-ingredient-line :line="$line" />
                         </li>
                     @endforeach
                 </ul>

@@ -5,7 +5,6 @@ namespace App\Livewire\Recipes;
 use App\Models\Recipe;
 use App\Support\Quantity;
 use App\Support\RecipeScaler;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -34,21 +33,15 @@ class Scaler extends Component
         $this->normalize();
     }
 
+    /** Keeps the URL state valid: a known unit system and the scale as a plain number ("0.5", "2"). */
     private function normalize(): void
     {
         if (! in_array($this->units, RecipeScaler::SYSTEMS, true)) {
             $this->units = 'original';
         }
-        $this->scale = $this->formatScale($this->factor());
+        $this->scale = Quantity::decimal($this->factor(), 3);
     }
 
-    /** The scale as a plain number string, e.g. "0.5" or "2". */
-    private function formatScale(float $factor): string
-    {
-        return Quantity::decimal($factor, 3);
-    }
-
-    #[Computed]
     public function factor(): float
     {
         return RecipeScaler::factorFromInput($this->scale);
@@ -57,7 +50,6 @@ class Scaler extends Component
     public function setScale(string $value): void
     {
         $this->scale = $value;
-        unset($this->factor);
         $this->normalize();
     }
 
@@ -77,7 +69,7 @@ class Scaler extends Component
         $current = $base * $this->factor();
         $target = $direction < 0 ? ceil($current - 1.0001) : floor($current + 1.0001);
         $target = max($target, 1);
-        $this->setScale($this->formatScale($target / $base));
+        $this->setScale((string) ($target / $base));
     }
 
     public function render()
