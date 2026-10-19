@@ -19,9 +19,9 @@ class CreateOwner extends Command
 
     public function handle(): int
     {
-        $name = $this->option('name') ?: env('OWNER_NAME') ?: text('Name', default: 'Sarah');
-        $email = $this->option('email') ?: env('OWNER_EMAIL') ?: text('Email', required: true);
-        $pass = $this->option('password') ?: env('OWNER_PASSWORD') ?: password('Password (min 8 characters)', required: true);
+        $name = $this->option('name') ?: config('recipes.owner.name') ?: text('Name', default: 'Sarah');
+        $email = $this->option('email') ?: config('recipes.owner.email') ?: text('Email', required: true);
+        $pass = $this->option('password') ?: config('recipes.owner.password') ?: password('Password (min 8 characters)', required: true);
 
         if (strlen($pass) < 8) {
             $this->error('Password must be at least 8 characters.');

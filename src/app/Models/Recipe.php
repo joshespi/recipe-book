@@ -85,10 +85,10 @@ class Recipe extends Model
         return $this->visibility === self::PUBLIC;
     }
 
-    /** Stores an uploaded image and queues its processing. */
+    /** Stores an uploaded image privately and queues its processing (see ProcessPhoto). */
     public function addPhoto(UploadedFile $file, array $attributes = []): Photo
     {
-        $path = $file->storeAs('photos/'.$this->id, Str::uuid().'.'.($file->extension() ?: 'jpg'), Photo::DISK);
+        $path = $file->storeAs('photos-raw/'.$this->id, Str::uuid().'.'.($file->extension() ?: 'jpg'), Photo::RAW_DISK);
 
         $photo = $this->photos()->create($attributes + [
             'disk_path' => $path,
@@ -176,10 +176,12 @@ class Recipe extends Model
         return $this->belongsTo(Photo::class, 'cover_photo_id');
     }
 
-    /** The cover photo, or the first photo if none is chosen. */
+    /** The chosen cover photo, or the first photo, as long as it has been processed. */
     public function cover(): ?Photo
     {
-        return $this->coverPhoto ?? $this->photos->first();
+        return $this->coverPhoto?->isProcessed()
+            ? $this->coverPhoto
+            : $this->photos->first(fn (Photo $p) => $p->isProcessed());
     }
 
     public function scopePublic(Builder $query): Builder

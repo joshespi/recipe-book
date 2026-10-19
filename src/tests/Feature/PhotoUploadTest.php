@@ -27,6 +27,7 @@ class PhotoUploadTest extends TestCase
     {
         parent::setUp();
         Storage::fake('public');
+        Storage::fake('local');
         $this->owner = User::factory()->create();
         $this->recipe = Recipe::factory()->for($this->owner)->create();
     }
@@ -55,8 +56,9 @@ class PhotoUploadTest extends TestCase
         $photos = $this->recipe->photos()->get();
         $this->assertCount(2, $photos);
         foreach ($photos as $photo) {
-            Storage::disk('public')->assertExists($photo->disk_path);
-            $this->assertStringStartsWith('photos/'.$this->recipe->id.'/', $photo->disk_path);
+            Storage::disk('local')->assertExists($photo->disk_path);
+            $this->assertStringStartsWith('photos-raw/'.$this->recipe->id.'/', $photo->disk_path);
+            Storage::disk('public')->assertDirectoryEmpty('photos');
         }
         Queue::assertPushed(ProcessPhoto::class, 2);
     }
@@ -104,8 +106,8 @@ class PhotoUploadTest extends TestCase
     {
         Storage::disk('public')->put('photos/1/a.webp', 'a');
         Storage::disk('public')->put('photos/1/b.webp', 'b');
-        $a = $this->recipe->photos()->create(['disk_path' => 'photos/1/a.webp', 'position' => 1]);
-        $b = $this->recipe->photos()->create(['disk_path' => 'photos/1/b.webp', 'position' => 2]);
+        $a = $this->recipe->photos()->create(['disk_path' => 'photos/1/a.webp', 'thumb_path' => 'photos/1/a-t.webp', 'medium_path' => 'photos/1/a-m.webp', 'position' => 1]);
+        $b = $this->recipe->photos()->create(['disk_path' => 'photos/1/b.webp', 'thumb_path' => 'photos/1/b-t.webp', 'medium_path' => 'photos/1/b-m.webp', 'position' => 2]);
 
         $component = Livewire::actingAs($this->owner)->test(PhotoGallery::class, ['recipe' => $this->recipe, 'editable' => true]);
 
@@ -140,7 +142,7 @@ class PhotoUploadTest extends TestCase
     public function test_process_photo_job_resizes_and_strips_the_original(): void
     {
         $file = $this->jpeg('big.jpg', 3000, 2000);
-        $path = $file->storeAs('photos/'.$this->recipe->id, 'raw.jpg', 'public');
+        $path = $file->storeAs('photos-raw/'.$this->recipe->id, 'raw.jpg', 'local');
         $photo = $this->recipe->photos()->create(['disk_path' => $path]);
 
         (new ProcessPhoto($photo->id))->handle();
@@ -151,7 +153,7 @@ class PhotoUploadTest extends TestCase
             $this->assertStringEndsWith('.webp', $p);
             Storage::disk('public')->assertExists($p);
         }
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('local')->assertMissing($path);
 
         [$w, $h] = getimagesizefromstring(Storage::disk('public')->get($photo->medium_path));
         $this->assertSame(1200, $w);
@@ -165,7 +167,7 @@ class PhotoUploadTest extends TestCase
 
     public function test_process_photo_job_does_not_upscale_small_images(): void
     {
-        $path = $this->jpeg('small.jpg', 300, 200)->storeAs('photos/'.$this->recipe->id, 'raw.jpg', 'public');
+        $path = $this->jpeg('small.jpg', 300, 200)->storeAs('photos-raw/'.$this->recipe->id, 'raw.jpg', 'local');
         $photo = $this->recipe->photos()->create(['disk_path' => $path]);
 
         (new ProcessPhoto($photo->id))->handle();
@@ -174,15 +176,51 @@ class PhotoUploadTest extends TestCase
         $this->assertSame(300, $w);
     }
 
-    public function test_undecodable_upload_is_removed_when_the_job_fails(): void
+    public function test_a_file_that_is_not_an_image_is_discarded(): void
     {
-        Storage::disk('public')->put('photos/1/bad.jpg', 'this is not an image');
-        $photo = $this->recipe->photos()->create(['disk_path' => 'photos/1/bad.jpg']);
+        Storage::disk('local')->put('photos-raw/1/bad.jpg', 'this is not an image');
+        $photo = $this->recipe->photos()->create(['disk_path' => 'photos-raw/1/bad.jpg']);
 
-        (new ProcessPhoto($photo->id))->failed(new \RuntimeException('decode'));
+        (new ProcessPhoto($photo->id))->handle();
 
         $this->assertNull(Photo::find($photo->id));
-        Storage::disk('public')->assertMissing('photos/1/bad.jpg');
+        Storage::disk('local')->assertMissing('photos-raw/1/bad.jpg');
+    }
+
+    public function test_an_unreadable_upload_is_retried_not_discarded(): void
+    {
+        $photo = $this->recipe->photos()->create(['disk_path' => 'photos-raw/1/missing.jpg']);
+
+        $this->expectException(\RuntimeException::class);
+        try {
+            (new ProcessPhoto($photo->id))->handle();
+        } finally {
+            $this->assertNotNull(Photo::find($photo->id), 'the photo row survives so the job can be retried');
+        }
+    }
+
+    public function test_unprocessed_photos_show_a_placeholder_and_never_a_raw_url(): void
+    {
+        $raw = $this->recipe->photos()->create(['disk_path' => 'photos-raw/1/new.jpg']);
+        $done = $this->recipe->photos()->create(['disk_path' => 'photos/1/d.webp', 'thumb_path' => 'photos/1/d-t.webp', 'medium_path' => 'photos/1/d-m.webp']);
+
+        $this->assertSame(Photo::PLACEHOLDER, $raw->thumbUrl());
+        $this->assertSame(Photo::PLACEHOLDER, $raw->mediumUrl());
+        $this->assertStringContainsString('d-t.webp', $done->thumbUrl());
+
+        $this->recipe->update(['title' => 'x']);
+        $this->recipe->forceFill(['cover_photo_id' => $raw->id])->save();
+        $this->assertTrue($this->recipe->fresh(['coverPhoto', 'photos'])->cover()->is($done), 'an unprocessed photo is never the cover');
+    }
+
+    public function test_old_unprocessed_photos_stop_counting_as_pending(): void
+    {
+        $fresh = $this->recipe->photos()->create(['disk_path' => 'photos-raw/1/a.jpg']);
+        $stale = $this->recipe->photos()->create(['disk_path' => 'photos-raw/1/b.jpg']);
+        $stale->forceFill(['created_at' => now()->subMinutes(30)])->save();
+
+        $this->assertTrue($fresh->isPending());
+        $this->assertFalse($stale->fresh()->isPending());
     }
 
     public function test_cook_log_with_photos(): void
@@ -216,9 +254,9 @@ class PhotoUploadTest extends TestCase
             ->call('save')
             ->assertHasErrors(['cooked_on']);
 
-        Storage::disk('public')->put('photos/1/c.webp', 'c');
+        Storage::disk('local')->put('photos-raw/1/c.jpg', 'c');
         $log = $this->recipe->cookLogs()->create(['cooked_on' => now()->toDateString()]);
-        $log->photos()->create(['recipe_id' => $this->recipe->id, 'disk_path' => 'photos/1/c.webp']);
+        $log->photos()->create(['recipe_id' => $this->recipe->id, 'disk_path' => 'photos-raw/1/c.jpg']);
 
         Livewire::actingAs($this->owner)
             ->test(CookLogs::class, ['recipe' => $this->recipe])
@@ -226,7 +264,7 @@ class PhotoUploadTest extends TestCase
 
         $this->assertSame(0, $this->recipe->cookLogs()->count());
         $this->assertSame(0, Photo::count());
-        Storage::disk('public')->assertMissing('photos/1/c.webp');
+        Storage::disk('local')->assertMissing('photos-raw/1/c.jpg');
     }
 
     public function test_cook_logs_belong_to_the_owner_only(): void

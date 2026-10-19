@@ -33,6 +33,7 @@ build_assets() {
     # Nothing newer than the last manifest (and same deps) means the current build is still right.
     if [ -f public/build/manifest.json ] \
         && [ ! package-lock.json -nt public/build/manifest.json ] \
+        && [ ! composer.lock -nt public/build/manifest.json ] \
         && [ -z "$(find resources vite.config.js -newer public/build/manifest.json -type f -print -quit)" ]; then
         echo "[deploy] assets up to date"
         return 0

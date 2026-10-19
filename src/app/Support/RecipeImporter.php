@@ -59,7 +59,7 @@ class RecipeImporter
                         'allow_redirects' => false,
                         'verify' => true,
                         // Connect to the address we checked, not whatever DNS says next time.
-                        'curl' => [CURLOPT_RESOLVE => ["{$host}:{$port}:{$ip}"]],
+                        'curl' => [CURLOPT_RESOLVE => ["{$host}:{$port}:".(str_contains($ip, ':') ? "[{$ip}]" : $ip)]],
                         'on_headers' => function ($response) {
                             if ((int) $response->getHeaderLine('Content-Length') > self::MAX_BYTES) {
                                 throw new \RuntimeException('too large');

@@ -225,6 +225,7 @@ class Form extends Component
 
     public function save()
     {
+        $this->recipe ? $this->authorize('update', $this->recipe) : $this->authorize('create', Recipe::class);
         $data = $this->validate();
 
         $prep = filled($data['prep_minutes']) ? (int) $data['prep_minutes'] : null;

@@ -5,6 +5,7 @@ x-app-env: &app-env
   APP_ENV: ${APP_ENV}
   APP_KEY: ${APP_KEY}
   APP_DEBUG: ${APP_DEBUG}
+  APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
   LOG_CHANNEL: ${LOG_CHANNEL:-stack}
   LOG_STACK: ${LOG_STACK:-single,stderr}
   LOG_LEVEL: ${LOG_LEVEL:-debug}
@@ -12,6 +13,7 @@ x-app-env: &app-env
   DB_HOST: recipes-db
   DB_PORT: 3306
   SESSION_DRIVER: database
+  SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-}
   QUEUE_CONNECTION: database
   CACHE_STORE: database
   DB_DATABASE: ${DB_DATABASE:-recipes}
@@ -19,9 +21,6 @@ x-app-env: &app-env
   DB_PASSWORD: ${DB_PASSWORD:-secret}
   TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
   BACKUP_KEEP: ${BACKUP_KEEP:-14}
-  OWNER_NAME: ${OWNER_NAME:-Sarah}
-  OWNER_EMAIL: ${OWNER_EMAIL:-}
-  OWNER_PASSWORD: ${OWNER_PASSWORD:-}
 
 x-app-service: &app-service
   build:
@@ -30,13 +29,16 @@ x-app-service: &app-service
   volumes:
     - ./src:/var/www/html
     - ./backups:/backups
+    - ready:/ready
   environment:
     <<: *app-env
   restart: always
   networks:
     - recipes
 
-# queue + scheduler: same image, run as www-data, wait for app's migrated marker.
+# queue + scheduler: same image, run as www-data, wait for app's readiness marker.
+# The marker lives on a tmpfs volume, so it is gone after a host reboot and a stale one
+# can never let the workers start before migrations have run.
 x-worker-service: &worker-service
   <<: *app-service
   depends_on:
@@ -47,7 +49,7 @@ x-worker-service: &worker-service
     - sh
     - -c
     - |
-      until [ -f storage/framework/migrated ]; do
+      until [ -f /ready/migrated ]; do
         echo "waiting for app migration to finish..."
         sleep 2
       done
@@ -57,12 +59,18 @@ x-worker-service: &worker-service
 services:
   app:
     <<: *app-service
+    # The owner settings are only needed by `php artisan recipes:create-owner`, so only this container gets them.
+    environment:
+      <<: *app-env
+      OWNER_NAME: ${OWNER_NAME:-Sarah}
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy
     container_name: recipes-app
     healthcheck:
-      test: ["CMD", "test", "-f", "/var/www/html/storage/framework/migrated"]
+      test: ["CMD", "test", "-f", "/ready/migrated"]
       interval: 5s
       timeout: 3s
       retries: 60
@@ -83,7 +91,9 @@ services:
     container_name: recipes-caddy
     restart: always
     ports:
-      - "${APP_PORT:-8086}:80"
+      # Localhost only by default: the Apache proxy in front is the way in. Set APP_BIND=0.0.0.0
+      # if Apache runs on another machine, and then trust only that machine in TRUSTED_PROXIES.
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8086}:80"
     volumes:
       - ./src:/var/www/html:ro
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
@@ -114,3 +124,9 @@ services:
 networks:
   recipes:
     driver: bridge
+
+volumes:
+  ready:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

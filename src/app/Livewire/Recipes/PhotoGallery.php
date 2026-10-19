@@ -53,7 +53,7 @@ class PhotoGallery extends Component
     {
         $this->guard();
 
-        $this->validate(Photo::uploadRules('uploads', 20), Photo::uploadMessages('uploads'));
+        $this->validate(Photo::uploadRules('uploads', 10), Photo::uploadMessages('uploads'));
 
         foreach ($this->uploads as $file) {
             $this->recipe->addPhoto($file);
@@ -104,7 +104,7 @@ class PhotoGallery extends Component
 
         return view('livewire.recipes.photo-gallery', [
             'photos' => $photos,
-            'pending' => $photos->contains(fn ($p) => ! $p->isProcessed()),
+            'pending' => $photos->contains(fn ($p) => $p->isPending()),
         ]);
     }
 }
