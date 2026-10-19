@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Recipe;
+use App\Support\RecipeScaler;
 use App\Support\ShoppingListBuilder;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -42,26 +42,20 @@ class ShoppingList extends Component
 
     public function render()
     {
-        if (! in_array($this->units, ['us', 'metric'], true)) {
-            $this->units = 'us';
-        }
-
         $ids = array_values(array_unique(array_map('intval', $this->selected)));
+        $mine = auth()->user()->recipes();
 
-        $recipes = Recipe::query()
-            ->where('user_id', auth()->id())
-            ->when($this->search !== '', fn ($q) => $q->where('title', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $this->search).'%')
-                ->orWhereIn('id', $ids)->where('user_id', auth()->id()))
+        // Ticked recipes stay in the picker even when they do not match the search.
+        $recipes = (clone $mine)
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($q) => $q->search($this->search)->orWhereIn('id', $ids)))
             ->orderBy('title')
             ->get(['id', 'title', 'servings']);
 
-        $chosen = $ids
-            ? Recipe::where('user_id', auth()->id())->whereIn('id', $ids)->with('ingredients')->orderBy('title')->get()
-            : collect();
+        $chosen = $ids ? (clone $mine)->whereIn('id', $ids)->with('ingredients')->orderBy('title')->get() : collect();
 
         $items = [];
         foreach ($chosen as $recipe) {
-            $factor = \App\Support\RecipeScaler::factorFromInput($this->scales[$recipe->id] ?? '1');
+            $factor = RecipeScaler::factorFromInput($this->scales[$recipe->id] ?? '1');
             foreach ($recipe->ingredients as $ingredient) {
                 $items[] = ['ingredient' => $ingredient, 'factor' => $factor];
             }

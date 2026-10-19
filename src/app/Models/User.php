@@ -50,6 +50,12 @@ class User extends Authenticatable // implements MustVerifyEmail
     /**
      * Get the user's initials
      */
+    /** The recipes this user owns. Use this instead of filtering on user_id by hand. */
+    public function recipes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Recipe::class);
+    }
+
     public function initials(): string
     {
         return Str::of($this->name)

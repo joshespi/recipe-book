@@ -27,7 +27,7 @@ final class ShoppingListBuilder
         $hasAmount = [];
 
         foreach ($items as ['ingredient' => $ingredient, 'factor' => $factor]) {
-            $name = self::display($ingredient->name);
+            $name = Str::squish($ingredient->name);
             $norm = self::normalize($ingredient->name);
 
             if ($ingredient->quantity === null) {
@@ -86,13 +86,6 @@ final class ShoppingListBuilder
     /** "Tomatoes " and "tomato" are the same thing. */
     private static function normalize(string $name): string
     {
-        $name = Str::lower(trim(preg_replace('/\s+/u', ' ', $name)));
-
-        return Str::singular($name);
-    }
-
-    private static function display(string $name): string
-    {
-        return trim(preg_replace('/\s+/u', ' ', $name));
+        return Str::singular(Str::lower(Str::squish($name)));
     }
 }

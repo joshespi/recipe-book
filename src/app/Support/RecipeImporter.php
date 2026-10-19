@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -157,21 +159,10 @@ class RecipeImporter
         return array_values(array_filter($ips));
     }
 
+    /** Resolves a redirect Location against the current URL (RFC 3986). */
     private static function absoluteUrl(string $base, string $location): string
     {
-        if (preg_match('#^https?://#i', $location)) {
-            return $location;
-        }
-        $parts = parse_url($base);
-        $root = $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
-        if (str_starts_with($location, '//')) {
-            return $parts['scheme'].':'.$location;
-        }
-        if (str_starts_with($location, '/')) {
-            return $root.$location;
-        }
-
-        return $root.rtrim(dirname($parts['path'] ?? '/'), '/').'/'.$location;
+        return (string) UriResolver::resolve(new Uri($base), new Uri($location));
     }
 
     /** Finds the first schema.org Recipe object in the page's JSON-LD blocks. */

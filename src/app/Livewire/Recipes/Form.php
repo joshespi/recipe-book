@@ -120,7 +120,7 @@ class Form extends Component
     #[Computed]
     public function allCategories()
     {
-        return Category::orderBy('sort_order')->orderBy('name')->get();
+        return Category::ordered()->get();
     }
 
     public string $importUrl = '';
@@ -193,11 +193,7 @@ class Form extends Component
         $this->validateOnly('newCategory', ['newCategory' => 'string|max:60']);
 
         $category = Category::whereRaw('lower(name) = ?', [mb_strtolower($name)])->first()
-            ?? Category::create([
-                'name' => $name,
-                'color' => Category::COLORS[Category::count() % count(Category::COLORS)],
-                'sort_order' => (int) Category::max('sort_order') + 1,
-            ]);
+            ?? Category::createLast($name, Category::COLORS[Category::count() % count(Category::COLORS)]);
 
         $this->categoryIds = array_values(array_unique([...array_map('intval', $this->categoryIds), $category->id]));
         $this->newCategory = '';

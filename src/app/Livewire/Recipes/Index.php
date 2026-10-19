@@ -17,8 +17,6 @@ class Index extends Component
 {
     use WithPagination;
 
-    public const SORTS = ['recent', 'az', 'cooked', 'rating'];
-
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
@@ -73,25 +71,20 @@ class Index extends Component
 
     public function render()
     {
-        $sort = in_array($this->sort, self::SORTS, true) ? $this->sort : 'recent';
-        $ids = array_filter(array_map('intval', $this->categoryIds));
+        $ids = array_values(array_unique(array_filter(array_map('intval', $this->categoryIds))));
+        $user = auth()->user();
 
-        $query = Recipe::query()
-            ->where('user_id', auth()->id())
+        $query = $user->recipes()
             ->search($this->search)
-            ->when($ids, function ($q) use ($ids) {
-                // A recipe must be in every selected category.
-                foreach ($ids as $id) {
-                    $q->whereHas('categories', fn ($c) => $c->where('categories.id', $id));
-                }
-            })
+            // A recipe must be in every selected category.
+            ->when($ids, fn ($q) => $q->whereHas('categories', fn ($c) => $c->whereIn('categories.id', $ids), '=', count($ids)))
             ->when($this->tag !== '', fn ($q) => $q->whereHas('tags', fn ($t) => $t->where('tags.slug', $this->tag)))
             ->when($this->favoritesOnly, fn ($q) => $q->where('is_favorite', true))
             ->when($this->withPhotos, fn ($q) => $q->has('photos'))
             ->with(['categories', 'coverPhoto', 'photos'])
             ->withCount('cookLogs');
 
-        match ($sort) {
+        match ($this->sort) {
             'az' => $query->orderBy('title'),
             'cooked' => $query->orderByDesc('cook_logs_count')->orderBy('title'),
             'rating' => $query->orderByRaw('rating is null')->orderByDesc('rating')->orderBy('title'),
@@ -100,10 +93,10 @@ class Index extends Component
 
         return view('livewire.recipes.index', [
             'recipes' => $query->paginate(24),
-            'categories' => Category::orderBy('sort_order')->orderBy('name')->get(),
-            'tags' => Tag::whereHas('recipes', fn ($q) => $q->where('user_id', auth()->id()))->orderBy('name')->get(),
+            'categories' => Category::ordered()->get(),
+            'tags' => Tag::whereHas('recipes', fn ($q) => $q->whereBelongsTo($user))->orderBy('name')->get(),
             'filtered' => $this->search !== '' || $ids || $this->favoritesOnly || $this->withPhotos || $this->tag !== '',
-            'total' => Recipe::where('user_id', auth()->id())->count(),
+            'total' => $user->recipes()->count(),
         ]);
     }
 }

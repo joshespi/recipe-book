@@ -3,7 +3,6 @@
 namespace App\Livewire\Recipes;
 
 use App\Models\Recipe;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -49,33 +48,7 @@ class Show extends Component
     public function duplicate()
     {
         $this->authorize('view', $this->recipe);
-        $source = $this->recipe->load(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps']);
-
-        $copy = DB::transaction(function () use ($source) {
-            $copy = $source->replicate(['slug', 'share_token', 'cover_photo_id', 'is_favorite', 'rating']);
-            $copy->title = 'Copy of '.$source->title;
-            $copy->slug = Recipe::uniqueSlug($copy->title);
-            $copy->visibility = Recipe::PRIVATE;
-            $copy->save();
-
-            $copy->categories()->sync($source->categories->pluck('id'));
-            $copy->tags()->sync($source->tags->pluck('id'));
-
-            $groupMap = [];
-            foreach ($source->ingredientGroups as $group) {
-                $groupMap[$group->id] = $copy->ingredientGroups()->create(['name' => $group->name, 'position' => $group->position])->id;
-            }
-            foreach ($source->ingredients as $ingredient) {
-                $copy->ingredients()->create($ingredient->only([
-                    'position', 'quantity', 'quantity_max', 'unit', 'name', 'note', 'original_text',
-                ]) + ['ingredient_group_id' => $groupMap[$ingredient->ingredient_group_id] ?? null]);
-            }
-            foreach ($source->steps as $step) {
-                $copy->steps()->create($step->only(['position', 'body', 'timer_minutes']));
-            }
-
-            return $copy;
-        });
+        $copy = $this->recipe->duplicate();
 
         return $this->redirectRoute('recipes.edit', $copy, navigate: true);
     }

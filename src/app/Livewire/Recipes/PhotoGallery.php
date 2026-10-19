@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Recipes;
 
-use App\Jobs\ProcessPhoto;
 use App\Models\Photo;
 use App\Models\Recipe;
 use Illuminate\Support\Str;
@@ -46,27 +45,21 @@ class PhotoGallery extends Component
         return $this->recipe->photos()->findOrFail($id);
     }
 
+    /** Re-renders (render() always reads the photos fresh) when a cook log adds or removes photos. */
     #[On('cook-logged')]
-    public function refresh(): void
-    {
-        $this->recipe->unsetRelation('photos');
-    }
+    public function refresh(): void {}
 
     public function updatedUploads(): void
     {
         $this->guard();
 
-        $this->validate([
-            'uploads' => 'array|max:20',
-            'uploads.*' => Photo::UPLOAD_RULES,
-        ], collect(Photo::UPLOAD_MESSAGES)->mapWithKeys(fn ($m, $k) => ['uploads'.substr($k, 1) => $m])->all());
+        $this->validate(Photo::uploadRules('uploads', 20), Photo::uploadMessages('uploads'));
 
         foreach ($this->uploads as $file) {
             $this->recipe->addPhoto($file);
         }
 
         $this->reset('uploads');
-        $this->recipe->unsetRelation('photos');
     }
 
     public function setCover(int $id): void
@@ -96,18 +89,13 @@ class PhotoGallery extends Component
         foreach ($order as $position => $photoId) {
             Photo::whereKey($photoId)->update(['position' => $position + 1]);
         }
-        $this->recipe->unsetRelation('photos');
     }
 
     public function deletePhoto(int $id): void
     {
         $this->guard();
-        $photo = $this->photo($id);
-        if ($this->recipe->cover_photo_id === $photo->id) {
-            $this->recipe->setCover(null);
-        }
-        $photo->delete();
-        $this->recipe->unsetRelation('photos');
+        $this->photo($id)->delete();
+        $this->recipe->refresh();
     }
 
     public function render()

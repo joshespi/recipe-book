@@ -25,19 +25,18 @@ class CookModeController extends Controller
     private function render(Request $request, Recipe $recipe, string $backUrl)
     {
         $factor = RecipeScaler::factorFromInput($request->query('scale'));
-        $units = in_array($request->query('units'), RecipeScaler::SYSTEMS, true) ? $request->query('units') : 'original';
+        $query = array_filter($request->only('scale', 'units'));
 
         $recipe->load(['ingredientGroups', 'ingredients', 'steps']);
-
-        $query = array_filter(['scale' => $request->query('scale'), 'units' => $request->query('units')]);
 
         return view('cook', [
             'recipe' => $recipe,
             'factor' => $factor,
-            'sections' => RecipeScaler::sections($recipe, $factor, $units),
+            // RecipeScaler falls back to the original units for anything it does not know.
+            'sections' => RecipeScaler::sections($recipe, $factor, (string) $request->query('units')),
             'steps' => $recipe->steps->map(fn ($s) => ['body' => $s->body, 'timer' => $s->timer_minutes])->values(),
             'backUrl' => $backUrl.($query ? '?'.http_build_query($query) : ''),
-            'noindex' => $recipe->visibility !== Recipe::PUBLIC,
+            'noindex' => ! $recipe->isIndexable(),
         ]);
     }
 }

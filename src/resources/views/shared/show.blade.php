@@ -33,10 +33,10 @@
             <meta property="og:image" content="{{ $cover->mediumUrl() }}">
             <meta name="twitter:image" content="{{ $cover->mediumUrl() }}">
         @endif
-        @if ($recipe->visibility !== \App\Models\Recipe::PUBLIC)
-            <meta name="robots" content="noindex, nofollow">
-        @else
+        @if ($recipe->isIndexable())
             <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+        @else
+            <meta name="robots" content="noindex, nofollow">
         @endif
     </x-slot:head>
 

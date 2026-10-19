@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 /**
  * Turns a free-text ingredient line ("1 1/2 cups flour, sifted") into parts.
  */
@@ -46,7 +48,7 @@ final class IngredientParser
      */
     public static function parse(string $line): array
     {
-        $original = trim(preg_replace('/\s+/u', ' ', $line));
+        $original = Str::squish($line);
         $text = trim(preg_replace('/^[\-\*\x{2022}\x{2013}]\s+/u', '', $original));
 
         $qty = $max = null;
@@ -77,7 +79,7 @@ final class IngredientParser
             return ' ';
         }, $text);
 
-        $text = trim(preg_replace('/\s+/u', ' ', $text));
+        $text = Str::squish($text);
         $text = preg_replace('/^of\s+/iu', '', $text);
 
         // ", finely chopped"
