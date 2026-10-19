@@ -5,6 +5,9 @@ set -e
 
 cd /var/www/html
 
+# Laravel/PHPUnit warn when .env is missing, even though all config arrives via container env vars.
+[ -f .env ] || touch .env
+
 if [ "${APP_ENV}" = "production" ]; then
     echo "[deploy] composer install (production)"
     composer install --no-dev --optimize-autoloader --no-interaction --quiet

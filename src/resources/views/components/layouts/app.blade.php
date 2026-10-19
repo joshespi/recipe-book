@@ -3,6 +3,7 @@
     <head>
         @include('partials.head')
         {{ $head ?? '' }}
+        @livewireStyles
     </head>
     <body class="min-h-screen bg-stone-50 text-stone-800 antialiased dark:bg-stone-950 dark:text-stone-200">
         <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80 print:hidden"
@@ -74,6 +75,7 @@
             {{ $slot }}
         </main>
 
+        @livewireScripts
         @fluxScripts
     </body>
 </html>
