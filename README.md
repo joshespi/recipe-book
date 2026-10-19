@@ -47,11 +47,15 @@ ProxyPreserveHost On
 RequestHeader set X-Forwarded-Proto "https"
 ProxyPass / http://127.0.0.1:8086/
 ProxyPassReverse / http://127.0.0.1:8086/
-LimitRequestBody 31457280
+LimitRequestBody 115343360
 ```
 
-In `.env` set `APP_URL=https://your.domain` and `TRUSTED_PROXIES=*`, then `docker compose up -d`. Share links and
-link previews are built from `APP_URL`. Photo uploads are limited to 20 MB each (PHP: 25 MB, Caddy: 30 MB).
+On the server set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your.domain`, `TRUSTED_PROXIES=*` and
+`SESSION_SECURE_COOKIE=true` in `.env` (and `APP_TIMEZONE` to your time zone), then `docker compose up -d`.
+Caddy only listens on `127.0.0.1` (`APP_BIND`), so it can only be reached through Apache; if Apache runs on another
+machine set `APP_BIND=0.0.0.0` and put that machine's address in `TRUSTED_PROXIES` instead of `*`. Share links and
+link previews are built from `APP_URL`. Photos are limited to 20 MB each and 10 per upload (PHP and Caddy accept up to
+110 MB per request, Apache above allows 110 MB).
 
 ## Everyday commands
 
@@ -69,7 +73,8 @@ See [`src/scripts/README.md`](src/scripts/README.md). In short: `backup.sh` writ
 `docker compose exec app bash scripts/restore.sh /backups/<file>.tar.gz` puts one back. Copy `backups/` to
 another machine too; a backup on the same disk is not enough.
 
-On Linux, make the folder writable by the container user: `sudo chown 33:33 backups`.
+On Linux, make the folder writable by the container user: `sudo chown 33:33 backups`. Archives are created private
+(mode 600) because they contain the database, so run your off-machine copy as root or as that user.
 
 ## What it does
 
@@ -89,6 +94,6 @@ On Linux, make the folder writable by the container user: `sudo chown 33:33 back
 ## Notes
 
 - Photos are re-encoded as WebP (full size capped at 2400 px, plus 1200 px and 400 px copies). The upload is
-  deleted afterwards so location data in the original never stays on the server.
+  kept on a private disk until then and deleted afterwards, so location data in the original is never served.
 - Search matches title, description and ingredient names with a plain `LIKE`, which is plenty for a personal collection.
 - Reordering steps uses the arrow buttons, and ingredients are reordered by moving their lines.

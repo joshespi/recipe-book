@@ -43,7 +43,7 @@
                             <span class="absolute top-1.5 left-1.5 rounded-full bg-amber-600 px-2 py-0.5 text-xs font-medium text-white">Cover</span>
                         @endif
                         @unless ($photo->isProcessed())
-                            <span class="absolute right-1.5 bottom-1.5 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">Processing…</span>
+                            <span class="absolute right-1.5 bottom-1.5 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">{{ $photo->isPending() ? 'Processing…' : 'Could not process' }}</span>
                         @endunless
                     </button>
 

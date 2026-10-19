@@ -10,6 +10,9 @@
 # "pre-restore" for its safety copy, which has its own, shorter retention.
 set -euo pipefail
 
+# Archives hold the whole database (password hashes included), so keep them private.
+umask 077
+
 APP_DIR="${APP_DIR:-/var/www/html}"
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 KEEP="${BACKUP_KEEP:-14}"

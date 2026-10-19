@@ -10,6 +10,11 @@ class Photo extends Model
 {
     public const DISK = 'public';
 
+    /** Uploads land here (not web-served) because they still carry EXIF/GPS data; ProcessPhoto moves the clean copies to DISK. */
+    public const RAW_DISK = 'local';
+
+    public const PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 4 3%27%3E%3Crect width=%274%27 height=%273%27 fill=%27%23d6d3d1%27/%3E%3C/svg%3E';
+
     /** Largest photo accepted, in KB. Livewire's temporary upload limit (config/livewire.php) uses it too. */
     public const MAX_KB = 20480;
 
@@ -47,9 +52,11 @@ class Photo extends Model
             // Covers every delete path (gallery, cook log, failed processing).
             Recipe::whereKey($photo->recipe_id)->where('cover_photo_id', $photo->id)->update(['cover_photo_id' => null]);
 
-            Storage::disk(self::DISK)->delete(array_filter([
-                $photo->disk_path, $photo->thumb_path, $photo->medium_path,
-            ]));
+            if ($photo->isProcessed()) {
+                Storage::disk(self::DISK)->delete([$photo->disk_path, $photo->thumb_path, $photo->medium_path]);
+            } else {
+                Storage::disk(self::RAW_DISK)->delete($photo->disk_path);
+            }
         });
     }
 
@@ -68,14 +75,20 @@ class Photo extends Model
         return $this->thumb_path !== null && $this->medium_path !== null;
     }
 
-    /** Falls back to the original while the queued job hasn't produced the resized copies. */
+    /** A photo still waiting for (or past) processing, as opposed to one that has failed for good. */
+    public function isPending(): bool
+    {
+        return ! $this->isProcessed() && $this->created_at?->gt(now()->subMinutes(10));
+    }
+
+    /** The raw upload sits on a private disk until processing, so show a placeholder meanwhile. */
     public function thumbUrl(): string
     {
-        return Storage::disk(self::DISK)->url($this->thumb_path ?? $this->disk_path);
+        return $this->thumb_path ? Storage::disk(self::DISK)->url($this->thumb_path) : self::PLACEHOLDER;
     }
 
     public function mediumUrl(): string
     {
-        return Storage::disk(self::DISK)->url($this->medium_path ?? $this->disk_path);
+        return $this->medium_path ? Storage::disk(self::DISK)->url($this->medium_path) : self::PLACEHOLDER;
     }
 }

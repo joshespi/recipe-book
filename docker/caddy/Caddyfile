@@ -9,7 +9,7 @@
 	root * /var/www/html/public
 	encode zstd gzip
 	request_body {
-		max_size 30MB
+		max_size 110MB
 	}
 
 	# Vite assets are content-hashed and photos have random UUID names, so they never change in place.
