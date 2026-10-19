@@ -190,8 +190,9 @@ class PhotoUploadTest extends TestCase
         Queue::fake();
 
         Livewire::actingAs($this->owner)
-            ->test(CookLogs::class, ['recipe' => $this->recipe, 'scale' => '2'])
-            ->call('open')
+            ->test(CookLogs::class, ['recipe' => $this->recipe])
+            ->set('showForm', true)
+            ->set('scale_used', '2')
             ->set('notes', 'Used less sugar')
             ->set('rating', '5')
             ->set('photos', [$this->jpeg('me.jpg', 100, 80)])

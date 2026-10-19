@@ -10,13 +10,26 @@ class Photo extends Model
 {
     public const DISK = 'public';
 
-    public const UPLOAD_RULES = 'image|mimes:jpeg,jpg,png,webp|max:20480';
+    /** Largest photo accepted, in KB. Livewire's temporary upload limit (config/livewire.php) uses it too. */
+    public const MAX_KB = 20480;
 
-    public const UPLOAD_MESSAGES = [
-        '*.image' => 'That file is not a picture we can use. HEIC photos need to be shared as JPEG.',
-        '*.mimes' => 'Please choose JPEG, PNG or WebP photos (HEIC is not supported).',
-        '*.max' => 'Each photo must be 20 MB or smaller.',
-    ];
+    /** Rules for a multi-file upload field such as "uploads". */
+    public static function uploadRules(string $field, int $maxFiles): array
+    {
+        return [
+            $field => "array|max:{$maxFiles}",
+            "{$field}.*" => 'image|mimes:jpeg,jpg,png,webp|max:'.self::MAX_KB,
+        ];
+    }
+
+    public static function uploadMessages(string $field): array
+    {
+        return [
+            "{$field}.*.image" => 'That file is not a picture we can use. HEIC photos need to be shared as JPEG.',
+            "{$field}.*.mimes" => 'Please choose JPEG, PNG or WebP photos (HEIC is not supported).',
+            "{$field}.*.max" => 'Each photo must be '.(self::MAX_KB / 1024).' MB or smaller.',
+        ];
+    }
 
     protected $fillable = [
         'recipe_id', 'cook_log_id', 'disk_path', 'thumb_path', 'medium_path',
@@ -31,6 +44,9 @@ class Photo extends Model
     protected static function booted(): void
     {
         static::deleting(function (Photo $photo) {
+            // Covers every delete path (gallery, cook log, failed processing).
+            Recipe::whereKey($photo->recipe_id)->where('cover_photo_id', $photo->id)->update(['cover_photo_id' => null]);
+
             Storage::disk(self::DISK)->delete(array_filter([
                 $photo->disk_path, $photo->thumb_path, $photo->medium_path,
             ]));
@@ -50,11 +66,6 @@ class Photo extends Model
     public function isProcessed(): bool
     {
         return $this->thumb_path !== null && $this->medium_path !== null;
-    }
-
-    public function url(): string
-    {
-        return Storage::disk(self::DISK)->url($this->disk_path);
     }
 
     /** Falls back to the original while the queued job hasn't produced the resized copies. */

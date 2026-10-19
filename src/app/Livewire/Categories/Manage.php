@@ -29,7 +29,7 @@ class Manage extends Component
             'color' => ['required', Rule::in(Category::COLORS)],
         ]);
 
-        Category::create($data + ['sort_order' => (int) Category::max('sort_order') + 1]);
+        Category::createLast($data['name'], $data['color']);
         $this->reset('name');
     }
 
@@ -68,7 +68,7 @@ class Manage extends Component
 
     public function move(int $id, int $direction): void
     {
-        $ordered = Category::orderBy('sort_order')->orderBy('name')->pluck('id')->all();
+        $ordered = Category::ordered()->pluck('id')->all();
         $index = array_search($id, $ordered, true);
         $target = $index === false ? false : $index + ($direction < 0 ? -1 : 1);
         if ($index === false || ! isset($ordered[$target])) {
@@ -84,7 +84,7 @@ class Manage extends Component
     public function render()
     {
         return view('livewire.categories.manage', [
-            'categories' => Category::withCount('recipes')->orderBy('sort_order')->orderBy('name')->get(),
+            'categories' => Category::withCount('recipes')->ordered()->get(),
             'colors' => Category::COLORS,
         ]);
     }

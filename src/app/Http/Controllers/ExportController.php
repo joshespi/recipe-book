@@ -12,8 +12,7 @@ class ExportController extends Controller
 {
     private function recipes(Request $request)
     {
-        return Recipe::query()
-            ->where('user_id', $request->user()->id)
+        return $request->user()->recipes()
             ->with(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps', 'cookLogs', 'photos'])
             ->orderBy('title')
             ->lazy(100);

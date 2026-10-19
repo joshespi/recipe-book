@@ -11,7 +11,7 @@
             </p>
         </div>
         @unless ($showForm)
-            <button type="button" wire:click="open" class="btn-primary">🍳 I made this!</button>
+            <button type="button" wire:click="$set('showForm', true)" class="btn-primary">🍳 I made this!</button>
         @endunless
     </div>
 

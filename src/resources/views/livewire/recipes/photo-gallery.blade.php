@@ -3,7 +3,7 @@
 <div class="space-y-3" wire:key="gallery-{{ $sig }}"
          x-data="{
             open: false, i: 0,
-            items: @js($photos->map(fn ($p) => ['src' => $p->mediumUrl(), 'full' => $p->url(), 'caption' => $p->caption])->values()),
+            items: @js($photos->map(fn ($p) => ['src' => $p->mediumUrl(), 'caption' => $p->caption])->values()),
             show(n) { this.i = n; this.open = true },
             next() { this.i = (this.i + 1) % this.items.length },
             prev() { this.i = (this.i - 1 + this.items.length) % this.items.length },

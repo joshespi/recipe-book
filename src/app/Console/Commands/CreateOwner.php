@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Hash;
 
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
@@ -30,13 +29,10 @@ class CreateOwner extends Command
             return self::FAILURE;
         }
 
-        $existed = User::where('email', $email)->exists();
-        User::updateOrCreate(
-            ['email' => $email],
-            ['name' => $name, 'password' => Hash::make($pass), 'email_verified_at' => now()],
-        );
+        // The User model hashes the password itself (the 'hashed' cast).
+        $user = User::updateOrCreate(['email' => $email], ['name' => $name, 'password' => $pass]);
 
-        $this->info(($existed ? 'Updated' : 'Created')." owner {$email}.");
+        $this->info(($user->wasRecentlyCreated ? 'Created' : 'Updated')." owner {$email}.");
 
         return self::SUCCESS;
     }

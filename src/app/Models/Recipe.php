@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Jobs\ProcessPhoto;
+use App\Support\UniqueSlug;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Recipe extends Model
@@ -44,20 +48,8 @@ class Recipe extends Model
     {
         static::creating(function (Recipe $recipe) {
             $recipe->share_token ??= Str::random(32);
-            $recipe->slug ??= static::uniqueSlug($recipe->title);
+            $recipe->slug ??= UniqueSlug::make(static::withTrashed(), $recipe->title, 'recipe');
         });
-    }
-
-    public static function uniqueSlug(string $title, ?int $ignoreId = null): string
-    {
-        $base = Str::slug($title) ?: 'recipe';
-        $slug = $base;
-        $i = 2;
-        while (static::withTrashed()->where('slug', $slug)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
-            $slug = $base.'-'.$i++;
-        }
-
-        return $slug;
     }
 
     public function regenerateShareToken(): void
@@ -87,22 +79,51 @@ class Recipe extends Model
         $this->save();
     }
 
-    /** Stores an uploaded image and queues its processing. */
-    public function addPhoto(\Illuminate\Http\UploadedFile $file, array $attributes = []): Photo
+    /** Only public recipes should appear in search engines. */
+    public function isIndexable(): bool
     {
-        $path = $file->storeAs(
-            'photos/'.$this->id,
-            \Illuminate\Support\Str::uuid().'.'.($file->extension() ?: 'jpg'),
-            Photo::DISK,
-        );
+        return $this->visibility === self::PUBLIC;
+    }
+
+    /** Stores an uploaded image and queues its processing. */
+    public function addPhoto(UploadedFile $file, array $attributes = []): Photo
+    {
+        $path = $file->storeAs('photos/'.$this->id, Str::uuid().'.'.($file->extension() ?: 'jpg'), Photo::DISK);
 
         $photo = $this->photos()->create($attributes + [
             'disk_path' => $path,
             'position' => (int) $this->photos()->max('position') + 1,
         ]);
-        \App\Jobs\ProcessPhoto::dispatch($photo->id);
+        ProcessPhoto::dispatch($photo->id);
 
         return $photo;
+    }
+
+    /** A private copy with the same content (not photos, rating or favourite) for making a variation. */
+    public function duplicate(): self
+    {
+        $this->loadMissing(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps']);
+
+        return DB::transaction(function () {
+            $copy = $this->replicate(['slug', 'share_token', 'cover_photo_id', 'is_favorite', 'rating']);
+            $copy->title = 'Copy of '.$this->title;
+            $copy->visibility = self::PRIVATE;
+            $copy->save();
+
+            $copy->categories()->sync($this->categories->pluck('id'));
+            $copy->tags()->sync($this->tags->pluck('id'));
+
+            $groupMap = [];
+            foreach ($this->ingredientGroups as $group) {
+                $groupMap[$group->id] = $copy->ingredientGroups()->create($group->only(['name', 'position']))->id;
+            }
+            $copy->ingredients()->createMany($this->ingredients->map(fn ($i) => $i->only([
+                'position', 'quantity', 'quantity_max', 'unit', 'name', 'note', 'original_text',
+            ]) + ['ingredient_group_id' => $groupMap[$i->ingredient_group_id] ?? null])->all());
+            $copy->steps()->createMany($this->steps->map->only(['position', 'body', 'timer_minutes'])->all());
+
+            return $copy;
+        });
     }
 
     public function shareUrl(): string

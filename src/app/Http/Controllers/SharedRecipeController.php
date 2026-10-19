@@ -34,7 +34,7 @@ class SharedRecipeController extends Controller
             ->paginate(24)
             ->withQueryString();
 
-        $categories = Category::whereHas('recipes', fn ($q) => $q->public())->orderBy('sort_order')->orderBy('name')->get();
+        $categories = Category::whereHas('recipes', fn ($q) => $q->public())->ordered()->get();
 
         return view('shared.browse', compact('recipes', 'categories', 'category', 'tag'));
     }

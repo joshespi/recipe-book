@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Support\UniqueSlug;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Str;
 
 class Category extends Model
 {
@@ -16,15 +17,21 @@ class Category extends Model
     {
         static::saving(function (Category $c) {
             if ($c->isDirty('name') || ! $c->slug) {
-                $base = Str::slug($c->name) ?: 'category';
-                $slug = $base;
-                $i = 2;
-                while (static::where('slug', $slug)->where('id', '!=', $c->id ?? 0)->exists()) {
-                    $slug = $base.'-'.$i++;
-                }
-                $c->slug = $slug;
+                $c->slug = UniqueSlug::make(static::query(), $c->name, 'category', $c->id);
             }
         });
+    }
+
+    /** Sarah's chosen order, then alphabetical. */
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('sort_order')->orderBy('name');
+    }
+
+    /** Adds a category at the end of the list. */
+    public static function createLast(string $name, string $color): self
+    {
+        return static::create(['name' => $name, 'color' => $color, 'sort_order' => (int) static::max('sort_order') + 1]);
     }
 
     public function recipes(): BelongsToMany
