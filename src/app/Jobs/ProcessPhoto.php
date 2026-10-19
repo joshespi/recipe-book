@@ -36,9 +36,13 @@ class ProcessPhoto implements ShouldQueue
         $source = $disk->get($photo->disk_path);
         $manager = ImageManager::gd();
 
-        $full = $manager->read($source)->scaleDown(width: 2400, height: 2400);
-        $medium = $manager->read($source)->scaleDown(width: 1200, height: 1200);
-        $thumb = $manager->read($source)->scaleDown(width: 400, height: 400);
+        // Decode once, then encode each size before shrinking the same image further.
+        $image = $manager->read($source)->scaleDown(width: 2400, height: 2400);
+        $fullWebp = (string) $image->toWebp(quality: 88);
+        $width = $image->width();
+        $height = $image->height();
+        $mediumWebp = (string) $image->scaleDown(width: 1200, height: 1200)->toWebp(quality: 82);
+        $thumbWebp = (string) $image->scaleDown(width: 400, height: 400)->toWebp(quality: 78);
 
         $dir = 'photos/'.$photo->recipe_id;
         $name = (string) Str::uuid();
@@ -48,12 +52,12 @@ class ProcessPhoto implements ShouldQueue
             'thumb_path' => "{$dir}/{$name}-thumb.webp",
         ];
 
-        $disk->put($paths['disk_path'], (string) $full->toWebp(quality: 88));
-        $disk->put($paths['medium_path'], (string) $medium->toWebp(quality: 82));
-        $disk->put($paths['thumb_path'], (string) $thumb->toWebp(quality: 78));
+        $disk->put($paths['disk_path'], $fullWebp);
+        $disk->put($paths['medium_path'], $mediumWebp);
+        $disk->put($paths['thumb_path'], $thumbWebp);
 
         $original = $photo->disk_path;
-        $photo->forceFill($paths + ['width' => $full->width(), 'height' => $full->height()])->save();
+        $photo->forceFill($paths + ['width' => $width, 'height' => $height])->save();
 
         // The raw upload still carries EXIF/GPS, so it must not stay on the public disk.
         if ($original !== $paths['disk_path']) {

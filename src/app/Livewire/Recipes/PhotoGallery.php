@@ -58,22 +58,11 @@ class PhotoGallery extends Component
 
         $this->validate([
             'uploads' => 'array|max:20',
-            'uploads.*' => 'image|mimes:jpeg,jpg,png,webp|max:20480',
-        ], [
-            'uploads.*.image' => 'That file is not a picture we can use. HEIC photos need to be shared as JPEG.',
-            'uploads.*.mimes' => 'Please choose JPEG, PNG or WebP photos (HEIC is not supported).',
-            'uploads.*.max' => 'Each photo must be 20 MB or smaller.',
-        ]);
+            'uploads.*' => Photo::UPLOAD_RULES,
+        ], collect(Photo::UPLOAD_MESSAGES)->mapWithKeys(fn ($m, $k) => ['uploads'.substr($k, 1) => $m])->all());
 
-        $position = (int) $this->recipe->photos()->max('position');
         foreach ($this->uploads as $file) {
-            $path = $file->storeAs(
-                'photos/'.$this->recipe->id,
-                Str::uuid().'.'.($file->extension() ?: 'jpg'),
-                Photo::DISK,
-            );
-            $photo = $this->recipe->photos()->create(['disk_path' => $path, 'position' => ++$position]);
-            ProcessPhoto::dispatch($photo->id);
+            $this->recipe->addPhoto($file);
         }
 
         $this->reset('uploads');
@@ -83,7 +72,7 @@ class PhotoGallery extends Component
     public function setCover(int $id): void
     {
         $this->guard();
-        $this->recipe->forceFill(['cover_photo_id' => $this->photo($id)->id])->save();
+        $this->recipe->setCover($this->photo($id));
     }
 
     public function saveCaption(int $id, string $caption): void
@@ -115,7 +104,7 @@ class PhotoGallery extends Component
         $this->guard();
         $photo = $this->photo($id);
         if ($this->recipe->cover_photo_id === $photo->id) {
-            $this->recipe->forceFill(['cover_photo_id' => null])->save();
+            $this->recipe->setCover(null);
         }
         $photo->delete();
         $this->recipe->unsetRelation('photos');

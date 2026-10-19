@@ -19,7 +19,7 @@
 
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-stone-400">
             @if ($recipe->total_minutes)<span>⏱ {{ $recipe->total_minutes }} min</span>@endif
-            @if ($recipe->servings)<span>🍽 {{ rtrim(rtrim(number_format($recipe->servings, 2), '0'), '.') }}</span>@endif
+            @if ($recipe->servings)<span>🍽 {{ \App\Support\Quantity::format($recipe->servings) }}</span>@endif
             @if ($recipe->rating)<span aria-label="{{ $recipe->rating }} of 5 stars">{{ str_repeat('★', $recipe->rating) }}</span>@endif
             @if (($recipe->cook_logs_count ?? 0) > 0)<span>Made {{ $recipe->cook_logs_count }}×</span>@endif
         </div>

@@ -16,7 +16,7 @@ class ExportController extends Controller
             ->where('user_id', $request->user()->id)
             ->with(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps', 'cookLogs', 'photos'])
             ->orderBy('title')
-            ->cursor();
+            ->lazy(100);
     }
 
     public function json(Request $request): StreamedResponse

@@ -11,12 +11,9 @@ class SharedRecipeController extends Controller
     /** Read-only recipe page reached through the share link. Private recipes are a 404. */
     public function show(string $token)
     {
-        $recipe = Recipe::query()
-            ->where('share_token', $token)
-            ->whereIn('visibility', [Recipe::UNLISTED, Recipe::PUBLIC])
-            ->with(['categories', 'tags', 'photos', 'coverPhoto', 'ingredientGroups', 'ingredients', 'steps'])
-            ->withCount('cookLogs')
-            ->firstOrFail();
+        $recipe = Recipe::findShared($token);
+        $recipe->load(['categories', 'tags', 'photos', 'coverPhoto', 'ingredientGroups', 'ingredients', 'steps'])
+            ->loadCount('cookLogs');
 
         return view('shared.show', ['recipe' => $recipe]);
     }
