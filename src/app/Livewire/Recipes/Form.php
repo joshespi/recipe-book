@@ -227,13 +227,13 @@ class Form extends Component
     {
         $data = $this->validate();
 
-        $prep = $data['prep_minutes'] !== null && $data['prep_minutes'] !== '' ? (int) $data['prep_minutes'] : null;
-        $cook = $data['cook_minutes'] !== null && $data['cook_minutes'] !== '' ? (int) $data['cook_minutes'] : null;
+        $prep = filled($data['prep_minutes']) ? (int) $data['prep_minutes'] : null;
+        $cook = filled($data['cook_minutes']) ? (int) $data['cook_minutes'] : null;
 
         $fields = [
             'title' => trim($data['title']),
             'description' => $data['description'] ?: null,
-            'servings' => $data['servings'] !== null && $data['servings'] !== '' ? (float) $data['servings'] : null,
+            'servings' => filled($data['servings']) ? (float) $data['servings'] : null,
             'yield_label' => $data['yield_label'] ?: null,
             'prep_minutes' => $prep,
             'cook_minutes' => $cook,
@@ -287,7 +287,7 @@ class Form extends Component
                 }
                 $recipe->steps()->create([
                     'body' => $body,
-                    'timer_minutes' => ($step['timer'] ?? null) !== null && $step['timer'] !== '' ? (int) $step['timer'] : null,
+                    'timer_minutes' => filled($step['timer'] ?? null) ? (int) $step['timer'] : null,
                     'position' => $position++,
                 ]);
             }

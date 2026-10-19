@@ -11,6 +11,11 @@
 	request_body {
 		max_size 30MB
 	}
+
+	# Vite assets are content-hashed and photos have random UUID names, so they never change in place.
+	@immutable path /build/* /storage/photos/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
 	php_fastcgi app:9000
 	file_server
 }

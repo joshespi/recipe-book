@@ -29,6 +29,15 @@ build_assets() {
         echo "$deps_stamp" > node_modules/.deps-stamp || return 1
     fi
 
+    # Tailwind only emits classes it finds in the source, so rebuild when any of it changed.
+    # Nothing newer than the last manifest (and same deps) means the current build is still right.
+    if [ -f public/build/manifest.json ] \
+        && [ ! package-lock.json -nt public/build/manifest.json ] \
+        && [ -z "$(find resources vite.config.js -newer public/build/manifest.json -type f -print -quit)" ]; then
+        echo "[deploy] assets up to date"
+        return 0
+    fi
+
     echo "[deploy] npm run build"
     rm -rf public/build.next public/build.prev
     npm run build --silent -- --outDir public/build.next || return 1
@@ -58,6 +67,7 @@ php artisan storage:link --force >/dev/null
 
 # Everything above runs as root; php-fpm/queue/scheduler run as www-data.
 echo "[deploy] fixing storage/bootstrap permissions for www-data"
-chown -R www-data:www-data storage bootstrap/cache
-find storage bootstrap/cache -type d -exec chmod 775 {} +
-find storage bootstrap/cache -type f -exec chmod 664 {} +
+# Only touch what is wrong, so boot time does not grow with the photo library.
+find storage bootstrap/cache ! -user www-data -exec chown www-data:www-data {} +
+find storage bootstrap/cache -type d ! -perm 775 -exec chmod 775 {} +
+find storage bootstrap/cache -type f ! -perm 664 -exec chmod 664 {} +

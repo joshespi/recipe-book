@@ -72,11 +72,7 @@
                 @php($key = \Illuminate\Support\Str::lower($line->name).'|'.$line->text())
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg p-2 text-lg hover:bg-stone-50 dark:hover:bg-stone-800/60" wire:key="line-{{ md5($key) }}">
                     <input type="checkbox" class="mt-1.5 size-5 shrink-0 rounded border-stone-400 text-amber-600 focus:ring-amber-500" x-on:change="toggle(@js($key))" :checked="done[@js($key)]" />
-                    <span :class="done[@js($key)] && 'text-stone-400 line-through dark:text-stone-600'">
-                        @if ($line->quantity)<strong>{{ $line->quantity }}</strong>@endif
-                        @if ($line->unit) {{ $line->unit }}@endif
-                        {{ $line->name }}
-                    </span>
+                    <x-ingredient-line :line="$line" ::class="done[{{ \Illuminate\Support\Js::from($key) }}] && 'text-stone-400 line-through dark:text-stone-600'" />
                 </label>
             @empty
                 <p class="py-6 text-center text-stone-500">Tick some recipes on the left and the ingredients you need will be added up here.</p>

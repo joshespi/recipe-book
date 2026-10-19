@@ -46,6 +46,8 @@ class ExportController extends Controller
 
     private function toArray(Recipe $recipe): array
     {
+        $groups = $recipe->ingredientGroups->pluck('name', 'id');
+
         return [
             'title' => $recipe->title,
             'description' => $recipe->description,
@@ -63,7 +65,7 @@ class ExportController extends Controller
             'categories' => $recipe->categories->pluck('name')->all(),
             'tags' => $recipe->tags->pluck('name')->all(),
             'ingredients' => $recipe->ingredients->map(fn ($i) => [
-                'group' => $recipe->ingredientGroups->firstWhere('id', $i->ingredient_group_id)?->name,
+                'group' => $groups[$i->ingredient_group_id] ?? null,
                 'text' => $i->original_text,
                 'quantity' => $i->quantity,
                 'quantity_max' => $i->quantity_max,
@@ -100,10 +102,11 @@ class ExportController extends Controller
         }
 
         $md[] = '## Ingredients';
+        $groups = $recipe->ingredientGroups->pluck('name', 'id');
         $lines = [];
         $group = false;
         foreach ($recipe->ingredients as $ingredient) {
-            $name = $recipe->ingredientGroups->firstWhere('id', $ingredient->ingredient_group_id)?->name;
+            $name = $groups[$ingredient->ingredient_group_id] ?? null;
             if ($name !== $group) {
                 $lines[] = ($lines ? "\n" : '').($name ? "**{$name}**\n" : '');
                 $group = $name;

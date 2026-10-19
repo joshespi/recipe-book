@@ -9,7 +9,7 @@
         <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80 print:hidden"
                 x-data="{ open: false }">
             <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-                <a href="{{ auth()->check() ? route('recipes.index') : route('home') }}" class="flex items-center gap-2 font-semibold text-amber-700 dark:text-amber-400" wire:navigate>
+                <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-amber-700 dark:text-amber-400" wire:navigate>
                     <span aria-hidden="true" class="text-xl">🍲</span>
                     <span class="hidden sm:inline">{{ config('app.name') }}</span>
                 </a>
@@ -76,6 +76,9 @@
         </header>
 
         <main class="mx-auto max-w-6xl px-4 py-6 print:max-w-none print:p-0">
+            @if (session('status'))
+                <p class="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 print:hidden" role="status">{{ session('status') }}</p>
+            @endif
             {{ $slot }}
         </main>
 
