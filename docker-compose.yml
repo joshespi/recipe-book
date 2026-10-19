@@ -1,0 +1,116 @@
+# Shared env for the PHP containers (app + queue + scheduler) so none can drift.
+x-app-env: &app-env
+  APP_URL: ${APP_URL}
+  APP_NAME: ${APP_NAME}
+  APP_ENV: ${APP_ENV}
+  APP_KEY: ${APP_KEY}
+  APP_DEBUG: ${APP_DEBUG}
+  LOG_CHANNEL: ${LOG_CHANNEL:-stack}
+  LOG_STACK: ${LOG_STACK:-single,stderr}
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+  DB_CONNECTION: mariadb
+  DB_HOST: recipes-db
+  DB_PORT: 3306
+  SESSION_DRIVER: database
+  QUEUE_CONNECTION: database
+  CACHE_STORE: database
+  DB_DATABASE: ${DB_DATABASE}
+  DB_USERNAME: ${DB_USERNAME}
+  DB_PASSWORD: ${DB_PASSWORD}
+  TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+  BACKUP_KEEP: ${BACKUP_KEEP:-14}
+  OWNER_NAME: ${OWNER_NAME:-Sarah}
+  OWNER_EMAIL: ${OWNER_EMAIL:-}
+  OWNER_PASSWORD: ${OWNER_PASSWORD:-}
+
+x-app-service: &app-service
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  volumes:
+    - ./src:/var/www/html
+    - ./backups:/backups
+  environment:
+    <<: *app-env
+  restart: always
+  networks:
+    - recipes
+
+# queue + scheduler: same image, run as www-data, wait for app's migrated marker.
+x-worker-service: &worker-service
+  <<: *app-service
+  depends_on:
+    app:
+      condition: service_healthy
+  user: www-data
+  entrypoint:
+    - sh
+    - -c
+    - |
+      until [ -f storage/framework/migrated ]; do
+        echo "waiting for app migration to finish..."
+        sleep 2
+      done
+      exec "$$@"
+    - worker
+
+services:
+  app:
+    <<: *app-service
+    depends_on:
+      db:
+        condition: service_healthy
+    container_name: recipes-app
+    healthcheck:
+      test: ["CMD", "test", "-f", "/var/www/html/storage/framework/migrated"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 10s
+
+  scheduler:
+    <<: *worker-service
+    container_name: recipes-scheduler
+    command: ["php", "artisan", "schedule:work"]
+
+  queue:
+    <<: *worker-service
+    container_name: recipes-queue
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: recipes-caddy
+    restart: always
+    ports:
+      - "${APP_PORT:-8086}:80"
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+    networks:
+      - recipes
+
+  db:
+    image: mariadb:11.8
+    container_name: recipes-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_DATABASE:-recipes}
+      MYSQL_USER: ${DB_USERNAME:-recipes}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - ./db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - recipes
+
+networks:
+  recipes:
+    driver: bridge

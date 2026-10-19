@@ -1,0 +1,16 @@
+{
+	auto_https off
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	root * /var/www/html/public
+	encode zstd gzip
+	request_body {
+		max_size 30MB
+	}
+	php_fastcgi app:9000
+	file_server
+}
