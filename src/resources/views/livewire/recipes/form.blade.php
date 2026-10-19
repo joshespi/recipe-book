@@ -85,7 +85,8 @@
                         @php($p = $row['parsed'])
                         <li class="flex flex-wrap gap-x-2">
                             @if ($p['quantity'] !== null)
-                                <span class="rounded bg-amber-100 px-1.5 font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">{{ \App\Support\Quantity::range($p['quantity'], $p['quantity_max'], fn ($v) => \App\Support\Quantity::format($v)) }}{{ $p['unit'] ? ' '.$p['unit'] : '' }}</span>
+                                @php($shown = \App\Support\RecipeScaler::scale((object) $p, 1.0, 'original'))
+                                <span class="rounded bg-amber-100 px-1.5 font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">{{ $shown->quantity }}{{ $shown->unit ? ' '.$shown->unit : '' }}</span>
                             @else
                                 <span class="rounded bg-stone-200 px-1.5 text-stone-600 dark:bg-stone-700 dark:text-stone-300" title="No amount found, so this will not scale">no amount</span>
                             @endif
