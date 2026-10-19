@@ -15,7 +15,7 @@ class Show extends Component
     public function mount(Recipe $recipe): void
     {
         $this->authorize('view', $recipe);
-        $this->recipe = $recipe->load(['categories', 'ingredientGroups', 'ingredients', 'steps']);
+        $this->recipe = $recipe->load(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps']);
     }
 
     public function toggleFavorite(): void
@@ -50,7 +50,7 @@ class Show extends Component
     public function duplicate()
     {
         $this->authorize('view', $this->recipe);
-        $source = $this->recipe->load(['categories', 'ingredientGroups', 'ingredients', 'steps']);
+        $source = $this->recipe->load(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps']);
 
         $copy = DB::transaction(function () use ($source) {
             $copy = $source->replicate(['slug', 'share_token', 'cover_photo_id', 'is_favorite', 'rating']);
@@ -60,6 +60,7 @@ class Show extends Component
             $copy->save();
 
             $copy->categories()->sync($source->categories->pluck('id'));
+            $copy->tags()->sync($source->tags->pluck('id'));
 
             $groupMap = [];
             foreach ($source->ingredientGroups as $group) {

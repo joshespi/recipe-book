@@ -27,6 +27,40 @@ final class RecipeScaler
         return min(max($factor, 0.125), 50.0);
     }
 
+    /** Reads a typed scale such as "2", "0.5", "3/4" or "2×"; anything unusable means 1. */
+    public static function factorFromInput(?string $raw): float
+    {
+        $raw = trim(str_replace(['×', 'x', 'X'], '', (string) $raw));
+        $value = Quantity::parse($raw);
+        if ($value === null && is_numeric($raw)) {
+            $value = (float) $raw;
+        }
+
+        return self::clampFactor($value && $value > 0 ? $value : 1.0);
+    }
+
+    /**
+     * The recipe ingredients grouped for display and scaled.
+     *
+     * @return list<array{name: ?string, lines: \Illuminate\Support\Collection<int, ScaledLine>}>
+     */
+    public static function sections(\App\Models\Recipe $recipe, float $factor, string $system): array
+    {
+        $recipe->loadMissing(['ingredientGroups', 'ingredients']);
+        $scale = fn ($ingredients) => $ingredients->map(fn ($i) => self::scale($i, $factor, $system))->values();
+
+        $sections = [];
+        $loose = $recipe->ingredients->whereNull('ingredient_group_id');
+        if ($loose->isNotEmpty()) {
+            $sections[] = ['name' => null, 'lines' => $scale($loose)];
+        }
+        foreach ($recipe->ingredientGroups as $group) {
+            $sections[] = ['name' => $group->name, 'lines' => $scale($recipe->ingredients->where('ingredient_group_id', $group->id))];
+        }
+
+        return $sections;
+    }
+
     /** "2", "½", "1⅓" ... for showing a scale or servings count. */
     public static function formatFactor(float $factor): string
     {

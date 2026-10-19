@@ -4,6 +4,21 @@
         <a href="{{ $recipe ? route('recipes.show', $recipe) : route('recipes.index') }}" class="text-sm text-stone-500 underline" wire:navigate>Cancel</a>
     </div>
 
+    @unless ($recipe)
+        <section class="card space-y-2 p-4" aria-labelledby="import-h">
+            <h2 id="import-h" class="font-semibold">Import from a web page</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400">Paste the link to a recipe and we will fill in the form for you to check. Works with most recipe sites.</p>
+            <div class="flex gap-2">
+                <input type="url" wire:model="importUrl" wire:keydown.enter.prevent="import" placeholder="https://…" class="field min-w-0 flex-1" aria-label="Recipe web address" />
+                <button type="button" wire:click="import" wire:loading.attr="disabled" wire:target="import" class="btn-secondary">
+                    <span wire:loading.remove wire:target="import">Import</span><span wire:loading wire:target="import">Reading…</span>
+                </button>
+            </div>
+            @error('importUrl') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+            @if ($importNotice) <p class="text-sm text-emerald-700 dark:text-emerald-400" role="status">{{ $importNotice }}</p> @endif
+        </section>
+    @endunless
+
     <section class="card space-y-4 p-4">
         <div>
             <label for="title" class="label">Title</label>
@@ -57,6 +72,15 @@
             <button type="button" wire:click="addCategory" class="btn-secondary">Add</button>
         </div>
         @error('newCategory') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+
+        <div>
+            <label for="tags" class="label">Tags</label>
+            <input id="tags" type="text" wire:model="tagsText" list="tag-suggestions" class="field" placeholder="freezer-friendly, kid favorite, gluten-free" />
+            <datalist id="tag-suggestions">
+                @foreach ($this->allTags as $tag)<option value="{{ $tag }}"></option>@endforeach
+            </datalist>
+            @error('tagsText') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
     </section>
 
     <section class="card space-y-3 p-4">
