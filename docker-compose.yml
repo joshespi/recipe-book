@@ -90,9 +90,12 @@ services:
     image: caddy:2-alpine
     container_name: recipes-caddy
     restart: always
+    environment:
+      CADDY_TRUSTED_PROXIES: ${CADDY_TRUSTED_PROXIES:-private_ranges}
     ports:
-      # Localhost only by default: the Apache proxy in front is the way in. Set APP_BIND=0.0.0.0
-      # if Apache runs on another machine, and then trust only that machine in TRUSTED_PROXIES.
+      # Localhost only unless .env says otherwise. With Apache on another machine (the deployed setup)
+      # .env sets APP_BIND=0.0.0.0; restrict APP_PORT to Apache's address in the firewall and list that
+      # address in TRUSTED_PROXIES.
       - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8086}:80"
     volumes:
       - ./src:/var/www/html:ro
