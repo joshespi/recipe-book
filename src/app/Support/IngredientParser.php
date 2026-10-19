@@ -8,6 +8,40 @@ namespace App\Support;
 final class IngredientParser
 {
     /**
+     * Parses a block of lines. A line starting with "#" (or a text line ending in a colon,
+     * like "For the sauce:") starts a new group; the lines after it belong to that group.
+     *
+     * @return list<array{group: ?string, parsed: array}>
+     */
+    public static function parseBlock(string $text): array
+    {
+        $rows = [];
+        $group = null;
+
+        foreach (preg_split('/\R/u', $text) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            if (preg_match('/^#+\s*(.+?)\s*:?$/u', $line, $m)) {
+                $group = $m[1];
+
+                continue;
+            }
+            if (preg_match('/^(\p{L}[^:]*):$/u', $line, $m)) {
+                $group = trim($m[1]);
+
+                continue;
+            }
+
+            $rows[] = ['group' => $group, 'parsed' => self::parse($line)];
+        }
+
+        return $rows;
+    }
+
+    /**
      * @return array{quantity: ?float, quantity_max: ?float, unit: ?string, name: string, note: ?string, original_text: string}
      */
     public static function parse(string $line): array
@@ -90,7 +124,6 @@ final class IngredientParser
         $word = $m[1];
         $rest = substr($text, strlen($m[0]));
 
-        // A bare "c" or "t"/"T" is only a unit if more text follows.
         if (($measure = UnitConverter::normalize($word)) !== null) {
             return [$measure, $rest];
         }
