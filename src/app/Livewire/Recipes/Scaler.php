@@ -51,13 +51,7 @@ class Scaler extends Component
     #[Computed]
     public function factor(): float
     {
-        $raw = trim(str_replace(['×', 'x', 'X'], '', $this->scale));
-        $value = Quantity::parse($raw);
-        if ($value === null && is_numeric($raw)) {
-            $value = (float) $raw;
-        }
-
-        return RecipeScaler::clampFactor($value && $value > 0 ? $value : 1.0);
+        return RecipeScaler::factorFromInput($this->scale);
     }
 
     public function setScale(string $value): void
@@ -89,25 +83,10 @@ class Scaler extends Component
     public function render()
     {
         $factor = $this->factor();
-        $recipe = $this->recipe->loadMissing(['ingredientGroups', 'ingredients', 'steps']);
-
-        $sections = [];
-        $loose = $recipe->ingredients->whereNull('ingredient_group_id');
-        if ($loose->isNotEmpty()) {
-            $sections[] = ['name' => null, 'lines' => $loose];
-        }
-        foreach ($recipe->ingredientGroups as $group) {
-            $sections[] = ['name' => $group->name, 'lines' => $recipe->ingredients->where('ingredient_group_id', $group->id)];
-        }
-
-        $sections = array_map(function ($section) use ($factor) {
-            $section['lines'] = $section['lines']->map(fn ($i) => RecipeScaler::scale($i, $factor, $this->units))->values();
-
-            return $section;
-        }, $sections);
+        $recipe = $this->recipe->loadMissing(['steps']);
 
         return view('livewire.recipes.scaler', [
-            'sections' => $sections,
+            'sections' => RecipeScaler::sections($recipe, $factor, $this->units),
             'factor' => $factor,
             'servings' => $recipe->servings ? $recipe->servings * $factor : null,
             'presets' => ['0.5' => '½×', '1' => '1×', '2' => '2×', '3' => '3×'],

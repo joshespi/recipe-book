@@ -54,6 +54,14 @@
                     </div>
                 @endif
 
+                @if ($recipe->tags->isNotEmpty())
+                    <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+                        @foreach ($recipe->tags as $tag)
+                            <a href="{{ route('browse', ['tag' => $tag->slug]) }}" class="hover:text-amber-700 dark:hover:text-amber-400">#{{ $tag->name }}</a>
+                        @endforeach
+                    </p>
+                @endif
+
                 <dl class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                     @if ($recipe->prep_minutes !== null)<div><dt class="text-stone-500">Prep</dt><dd class="font-medium">{{ $recipe->prep_minutes }} min</dd></div>@endif
                     @if ($recipe->cook_minutes !== null)<div><dt class="text-stone-500">Cook</dt><dd class="font-medium">{{ $recipe->cook_minutes }} min</dd></div>@endif
@@ -72,7 +80,10 @@
                     </p>
                 @endif
 
-                <button type="button" onclick="window.print()" class="btn-secondary print:hidden">🖨️ Print</button>
+                <div class="flex flex-wrap gap-2 print:hidden">
+                    <a href="{{ route('shared.cook', $recipe->share_token) }}" class="btn-primary" x-data x-on:click="$el.search = location.search">👩‍🍳 Cook mode</a>
+                    <button type="button" onclick="window.print()" class="btn-secondary">🖨️ Print</button>
+                </div>
             </div>
 
             @if ($cover)

@@ -18,6 +18,7 @@
                     @auth
                         <x-nav-link :href="route('recipes.index')" :active="request()->routeIs('recipes.index', 'recipes.show', 'recipes.edit')">Recipes</x-nav-link>
                         <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">Categories</x-nav-link>
+                        <x-nav-link :href="route('shopping.index')" :active="request()->routeIs('shopping.*')">Shopping list</x-nav-link>
                     @endauth
                     <x-nav-link :href="route('browse')" :active="request()->routeIs('browse')">Browse public</x-nav-link>
                 </nav>
@@ -44,6 +45,8 @@
                             <flux:profile :initials="auth()->user()->initials()" icon-trailing="chevron-down" />
                             <flux:menu>
                                 <flux:menu.item href="{{ route('settings.profile') }}" icon="cog" wire:navigate>Settings</flux:menu.item>
+                                <flux:menu.item href="{{ route('export.markdown') }}" icon="arrow-down-tray">Export (Markdown)</flux:menu.item>
+                                <flux:menu.item href="{{ route('export.json') }}" icon="arrow-down-tray">Export (JSON)</flux:menu.item>
                                 <flux:menu.separator />
                                 <form method="POST" action="{{ route('logout') }}" class="w-full">
                                     @csrf
@@ -66,6 +69,7 @@
                     <a href="{{ route('recipes.index') }}" class="block py-2" wire:navigate>Recipes</a>
                     <a href="{{ route('recipes.create') }}" class="block py-2" wire:navigate>New recipe</a>
                     <a href="{{ route('categories.index') }}" class="block py-2" wire:navigate>Categories</a>
+                    <a href="{{ route('shopping.index') }}" class="block py-2" wire:navigate>Shopping list</a>
                 @endauth
                 <a href="{{ route('browse') }}" class="block py-2" wire:navigate>Browse public</a>
             </nav>

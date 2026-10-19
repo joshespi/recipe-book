@@ -85,6 +85,11 @@ class Recipe extends Model
         return $this->belongsToMany(Category::class)->orderBy('sort_order');
     }
 
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->orderBy('name');
+    }
+
     public function ingredientGroups(): HasMany
     {
         return $this->hasMany(IngredientGroup::class)->orderBy('position');

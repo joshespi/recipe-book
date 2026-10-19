@@ -4,8 +4,12 @@ namespace App\Livewire\Recipes;
 
 use App\Models\Category;
 use App\Models\Recipe;
+use App\Models\Tag;
+use App\Support\ImportException;
 use App\Support\IngredientParser;
+use App\Support\RecipeImporter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -41,6 +45,9 @@ class Form extends Component
 
     public string $newCategory = '';
 
+    /** Free-form tags, comma separated: "freezer-friendly, kid favorite". */
+    public string $tagsText = '';
+
     /** One ingredient per line; "# Heading" starts a group. */
     public string $ingredientsText = '';
 
@@ -57,7 +64,7 @@ class Form extends Component
         }
 
         $this->authorize('update', $recipe);
-        $recipe->load(['categories', 'ingredientGroups', 'ingredients', 'steps']);
+        $recipe->load(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps']);
         $this->recipe = $recipe;
 
         $this->title = $recipe->title;
@@ -71,6 +78,7 @@ class Form extends Component
         $this->notes = (string) $recipe->notes;
         $this->visibility = $recipe->visibility;
         $this->categoryIds = $recipe->categories->pluck('id')->all();
+        $this->tagsText = $recipe->tags->pluck('name')->join(', ');
         $this->ingredientsText = $this->ingredientsToText($recipe);
         $this->steps = $recipe->steps
             ->map(fn ($s) => ['body' => $s->body, 'timer' => $s->timer_minutes !== null ? (string) $s->timer_minutes : null])
@@ -104,9 +112,56 @@ class Form extends Component
     }
 
     #[Computed]
+    public function allTags()
+    {
+        return Tag::orderBy('name')->pluck('name');
+    }
+
+    #[Computed]
     public function allCategories()
     {
         return Category::orderBy('sort_order')->orderBy('name')->get();
+    }
+
+    public string $importUrl = '';
+
+    public ?string $importNotice = null;
+
+    /** Fills the form from a recipe web page. Nothing is saved until the owner presses Save. */
+    public function import(): void
+    {
+        $this->importNotice = null;
+        $this->validateOnly('importUrl', ['importUrl' => 'required|string|max:2048'], [], ['importUrl' => 'web address']);
+
+        $key = 'recipe-import:'.auth()->id();
+        if (RateLimiter::tooManyAttempts($key, 10)) {
+            $this->addError('importUrl', 'Please wait a minute before importing again.');
+
+            return;
+        }
+        RateLimiter::hit($key, 60);
+
+        try {
+            $data = RecipeImporter::import($this->importUrl);
+        } catch (ImportException $e) {
+            $this->addError('importUrl', $e->getMessage());
+
+            return;
+        }
+
+        $this->title = $data['title'] !== '' ? $data['title'] : $this->title;
+        $this->description = $data['description'];
+        $this->servings = $data['servings'];
+        $this->yield_label = $data['yield_label'];
+        $this->prep_minutes = $data['prep_minutes'] !== null ? (string) $data['prep_minutes'] : null;
+        $this->cook_minutes = $data['cook_minutes'] !== null ? (string) $data['cook_minutes'] : null;
+        $this->ingredientsText = implode("\n", $data['ingredients']);
+        $this->steps = array_map(fn ($s) => ['body' => $s, 'timer' => null], $data['steps']) ?: [['body' => '', 'timer' => null]];
+        $this->source_name = $data['source_name'];
+        $this->source_url = $data['source_url'];
+
+        $this->importNotice = 'Imported. Check the details below, then press Save.';
+        $this->importUrl = '';
     }
 
     public function addStep(): void
@@ -164,6 +219,7 @@ class Form extends Component
             'visibility' => ['required', Rule::in(Recipe::VISIBILITIES)],
             'categoryIds' => 'array',
             'categoryIds.*' => 'integer|exists:categories,id',
+            'tagsText' => 'nullable|string|max:1000',
             'ingredientsText' => 'nullable|string|max:20000',
             'steps' => 'array|max:100',
             'steps.*.body' => 'nullable|string|max:5000',
@@ -203,6 +259,7 @@ class Form extends Component
             }
 
             $recipe->categories()->sync(array_map('intval', $data['categoryIds'] ?? []));
+            $recipe->tags()->sync(Tag::fromText($data['tagsText'] ?? '')->pluck('id')->all());
 
             // Ingredients and steps are replaced wholesale; the text is the source of truth.
             $recipe->ingredients()->delete();

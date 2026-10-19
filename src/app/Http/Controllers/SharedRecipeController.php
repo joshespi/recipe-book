@@ -14,7 +14,7 @@ class SharedRecipeController extends Controller
         $recipe = Recipe::query()
             ->where('share_token', $token)
             ->whereIn('visibility', [Recipe::UNLISTED, Recipe::PUBLIC])
-            ->with(['categories', 'photos', 'coverPhoto', 'ingredientGroups', 'ingredients', 'steps'])
+            ->with(['categories', 'tags', 'photos', 'coverPhoto', 'ingredientGroups', 'ingredients', 'steps'])
             ->withCount('cookLogs')
             ->firstOrFail();
 
@@ -25,11 +25,13 @@ class SharedRecipeController extends Controller
     public function browse(Request $request)
     {
         $category = $request->string('category')->toString();
+        $tag = $request->string('tag')->toString();
 
         $recipes = Recipe::query()
             ->public()
             ->search($request->string('q')->toString())
             ->when($category !== '', fn ($q) => $q->whereHas('categories', fn ($c) => $c->where('slug', $category)))
+            ->when($tag !== '', fn ($q) => $q->whereHas('tags', fn ($t) => $t->where('slug', $tag)))
             ->with(['categories', 'coverPhoto', 'photos'])
             ->latest()
             ->paginate(24)
@@ -37,6 +39,6 @@ class SharedRecipeController extends Controller
 
         $categories = Category::whereHas('recipes', fn ($q) => $q->public())->orderBy('sort_order')->orderBy('name')->get();
 
-        return view('shared.browse', compact('recipes', 'categories', 'category'));
+        return view('shared.browse', compact('recipes', 'categories', 'category', 'tag'));
     }
 }

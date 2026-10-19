@@ -37,6 +37,15 @@
                 <button type="button" wire:click="clearFilters" class="ml-auto text-amber-700 underline dark:text-amber-400">Clear filters</button>
             @endif
         </div>
+
+        @if ($tags->isNotEmpty())
+            <div class="flex flex-wrap gap-1.5 text-xs" aria-label="Tags">
+                @foreach ($tags as $t)
+                    <button type="button" wire:click="toggleTag('{{ $t->slug }}')" aria-pressed="{{ $tag === $t->slug ? 'true' : 'false' }}"
+                            class="rounded-full border px-2.5 py-0.5 {{ $tag === $t->slug ? 'border-amber-600 bg-amber-600 text-white' : 'border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800' }}">#{{ $t->name }}</button>
+                @endforeach
+            </div>
+        @endif
     </div>
 
     @if ($recipes->isEmpty())

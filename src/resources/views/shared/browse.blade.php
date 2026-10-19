@@ -8,6 +8,10 @@
 
         <form method="GET" action="{{ route('browse') }}" class="card flex flex-wrap items-center gap-2 p-3">
             <input type="search" name="q" value="{{ request('q') }}" placeholder="Search recipes…" class="field min-w-0 flex-1" aria-label="Search public recipes" />
+            @if ($tag !== '')
+                <input type="hidden" name="tag" value="{{ $tag }}" />
+                <a href="{{ route('browse', array_filter(['q' => request('q'), 'category' => $category])) }}" class="rounded-full border border-amber-600 bg-amber-600 px-2.5 py-0.5 text-xs text-white" title="Remove tag filter">#{{ $tag }} ✕</a>
+            @endif
             @if ($categories->isNotEmpty())
                 <select name="category" class="field w-auto" aria-label="Category">
                     <option value="">All categories</option>

@@ -4,6 +4,7 @@ namespace App\Livewire\Recipes;
 
 use App\Models\Category;
 use App\Models\Recipe;
+use App\Models\Tag;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -34,6 +35,9 @@ class Index extends Component
     #[Url(except: 'recent')]
     public string $sort = 'recent';
 
+    #[Url(except: '')]
+    public string $tag = '';
+
     public function updated($name): void
     {
         $this->resetPage();
@@ -48,9 +52,15 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function toggleTag(string $slug): void
+    {
+        $this->tag = $this->tag === $slug ? '' : $slug;
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
-        $this->reset('search', 'categoryIds', 'favoritesOnly', 'withPhotos', 'sort');
+        $this->reset('search', 'categoryIds', 'favoritesOnly', 'withPhotos', 'sort', 'tag');
         $this->resetPage();
     }
 
@@ -75,6 +85,7 @@ class Index extends Component
                     $q->whereHas('categories', fn ($c) => $c->where('categories.id', $id));
                 }
             })
+            ->when($this->tag !== '', fn ($q) => $q->whereHas('tags', fn ($t) => $t->where('tags.slug', $this->tag)))
             ->when($this->favoritesOnly, fn ($q) => $q->where('is_favorite', true))
             ->when($this->withPhotos, fn ($q) => $q->has('photos'))
             ->with(['categories', 'coverPhoto', 'photos'])
@@ -90,7 +101,8 @@ class Index extends Component
         return view('livewire.recipes.index', [
             'recipes' => $query->paginate(24),
             'categories' => Category::orderBy('sort_order')->orderBy('name')->get(),
-            'filtered' => $this->search !== '' || $ids || $this->favoritesOnly || $this->withPhotos,
+            'tags' => Tag::whereHas('recipes', fn ($q) => $q->where('user_id', auth()->id()))->orderBy('name')->get(),
+            'filtered' => $this->search !== '' || $ids || $this->favoritesOnly || $this->withPhotos || $this->tag !== '',
             'total' => Recipe::where('user_id', auth()->id())->count(),
         ]);
     }
