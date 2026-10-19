@@ -1,7 +1,9 @@
 {
 	auto_https off
 	servers {
-		trusted_proxies static private_ranges
+		# Who may tell Caddy the real client address and scheme (X-Forwarded-*): the Apache proxy.
+		# Private networks by default; see CADDY_TRUSTED_PROXIES in .env.example.
+		trusted_proxies static {$CADDY_TRUSTED_PROXIES:private_ranges}
 	}
 }
 
