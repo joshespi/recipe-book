@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+*.log
+/.idea
+/.vscode
+docker-compose.override.yml
+.env
+db_data/
+backups/*
+!backups/.gitkeep
+.claude
