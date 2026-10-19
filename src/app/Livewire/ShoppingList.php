@@ -26,6 +26,14 @@ class ShoppingList extends Component
 
     public string $search = '';
 
+    /** A newly ticked recipe starts at 1×, so the dropdown shows what the list is using. */
+    public function updatedSelected(): void
+    {
+        foreach ($this->selected as $id) {
+            $this->scales[(string) $id] ??= '1';
+        }
+    }
+
     public function clearSelection(): void
     {
         $this->selected = [];

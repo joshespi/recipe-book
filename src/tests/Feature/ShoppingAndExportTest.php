@@ -99,6 +99,7 @@ class ShoppingAndExportTest extends TestCase
             ->assertSee('Pancakes')->assertSee('Omelette')->assertDontSee('Not mine')
             ->assertSee('Tick some recipes')
             ->set('selected', [(string) $a->id, (string) $b->id])
+            ->assertSet('scales', [(string) $a->id => '1', (string) $b->id => '1'])
             ->assertSeeInOrder(['5', 'eggs'])
             ->assertSeeInOrder(['1', 'cup', 'flour'])
             ->set('scales', [(string) $a->id => '2'])
