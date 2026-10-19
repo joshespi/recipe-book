@@ -44,7 +44,6 @@ class Show extends Component
     {
         $this->authorize('update', $this->recipe);
         $this->recipe->regenerateShareToken();
-        $this->dispatch('share-link-changed');
     }
 
     public function duplicate()

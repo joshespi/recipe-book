@@ -61,12 +61,6 @@ final class RecipeScaler
         return $sections;
     }
 
-    /** "2", "½", "1⅓" ... for showing a scale or servings count. */
-    public static function formatFactor(float $factor): string
-    {
-        return Quantity::format($factor);
-    }
-
     /**
      * @param  object{quantity: ?float, quantity_max: ?float, unit: ?string, name: string, note: ?string}  $ingredient
      */

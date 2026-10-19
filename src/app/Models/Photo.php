@@ -10,6 +10,14 @@ class Photo extends Model
 {
     public const DISK = 'public';
 
+    public const UPLOAD_RULES = 'image|mimes:jpeg,jpg,png,webp|max:20480';
+
+    public const UPLOAD_MESSAGES = [
+        '*.image' => 'That file is not a picture we can use. HEIC photos need to be shared as JPEG.',
+        '*.mimes' => 'Please choose JPEG, PNG or WebP photos (HEIC is not supported).',
+        '*.max' => 'Each photo must be 20 MB or smaller.',
+    ];
+
     protected $fillable = [
         'recipe_id', 'cook_log_id', 'disk_path', 'thumb_path', 'medium_path',
         'width', 'height', 'caption', 'position', 'taken_at',

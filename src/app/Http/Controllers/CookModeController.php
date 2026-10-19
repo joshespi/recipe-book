@@ -19,12 +19,7 @@ class CookModeController extends Controller
 
     public function shared(Request $request, string $token)
     {
-        $recipe = Recipe::query()
-            ->where('share_token', $token)
-            ->whereIn('visibility', [Recipe::UNLISTED, Recipe::PUBLIC])
-            ->firstOrFail();
-
-        return $this->render($request, $recipe, route('shared.show', $token));
+        return $this->render($request, Recipe::findShared($token), route('shared.show', $token));
     }
 
     private function render(Request $request, Recipe $recipe, string $backUrl)

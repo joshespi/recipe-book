@@ -60,12 +60,8 @@ class CookLogs extends Component
             'rating' => 'nullable|integer|min:1|max:5',
             'scale_used' => 'required|numeric|min:0.125|max:50',
             'photos' => 'array|max:10',
-            'photos.*' => 'image|mimes:jpeg,jpg,png,webp|max:20480',
-        ], [
-            'photos.*.image' => 'That file is not a picture we can use. HEIC photos need to be shared as JPEG.',
-            'photos.*.mimes' => 'Please choose JPEG, PNG or WebP photos (HEIC is not supported).',
-            'photos.*.max' => 'Each photo must be 20 MB or smaller.',
-        ]);
+            'photos.*' => Photo::UPLOAD_RULES,
+        ], collect(Photo::UPLOAD_MESSAGES)->mapWithKeys(fn ($m, $k) => ['photos'.substr($k, 1) => $m])->all());
 
         $log = $this->recipe->cookLogs()->create([
             'cooked_on' => $data['cooked_on'],
@@ -74,20 +70,8 @@ class CookLogs extends Component
             'scale_used' => (float) $data['scale_used'],
         ]);
 
-        $position = (int) $this->recipe->photos()->max('position');
         foreach ($this->photos as $file) {
-            $path = $file->storeAs(
-                'photos/'.$this->recipe->id,
-                Str::uuid().'.'.($file->extension() ?: 'jpg'),
-                Photo::DISK,
-            );
-            $photo = $this->recipe->photos()->create([
-                'cook_log_id' => $log->id,
-                'disk_path' => $path,
-                'position' => ++$position,
-                'taken_at' => $log->cooked_on,
-            ]);
-            ProcessPhoto::dispatch($photo->id);
+            $this->recipe->addPhoto($file, ['cook_log_id' => $log->id, 'taken_at' => $log->cooked_on]);
         }
 
         $this->cancel();

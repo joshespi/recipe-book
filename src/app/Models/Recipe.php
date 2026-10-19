@@ -70,6 +70,41 @@ class Recipe extends Model
         return $this->visibility !== self::PRIVATE;
     }
 
+    /** The one definition of "reachable by share link": any recipe that is not private. */
+    public static function findShared(string $token): self
+    {
+        return static::query()
+            ->where('share_token', $token)
+            ->where('visibility', '!=', self::PRIVATE)
+            ->firstOrFail();
+    }
+
+    /** Makes a photo of this recipe the cover, or clears the cover with null. */
+    public function setCover(?Photo $photo): void
+    {
+        abort_if($photo && $photo->recipe_id !== $this->id, 404);
+        $this->cover_photo_id = $photo?->id;
+        $this->save();
+    }
+
+    /** Stores an uploaded image and queues its processing. */
+    public function addPhoto(\Illuminate\Http\UploadedFile $file, array $attributes = []): Photo
+    {
+        $path = $file->storeAs(
+            'photos/'.$this->id,
+            \Illuminate\Support\Str::uuid().'.'.($file->extension() ?: 'jpg'),
+            Photo::DISK,
+        );
+
+        $photo = $this->photos()->create($attributes + [
+            'disk_path' => $path,
+            'position' => (int) $this->photos()->max('position') + 1,
+        ]);
+        \App\Jobs\ProcessPhoto::dispatch($photo->id);
+
+        return $photo;
+    }
+
     public function shareUrl(): string
     {
         return route('shared.show', $this->share_token);
