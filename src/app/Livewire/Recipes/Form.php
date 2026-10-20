@@ -3,6 +3,7 @@
 namespace App\Livewire\Recipes;
 
 use App\Models\Category;
+use App\Models\Photo;
 use App\Models\Recipe;
 use App\Models\Tag;
 use App\Support\ImportException;
@@ -14,11 +15,41 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.app')]
 class Form extends Component
 {
+    use WithFileUploads;
+
     public ?Recipe $recipe = null;
+
+    /** @var list<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> Photos picked while creating; attached once the recipe exists. */
+    public array $photos = [];
+
+    public array $incoming = [];
+
+    public function updatedIncoming(): void
+    {
+        $this->validate(Photo::uploadRules('incoming', 10), Photo::uploadMessages('incoming'));
+
+        $room = 10 - count($this->photos);
+        if (count($this->incoming) > $room) {
+            $this->addError('incoming', "You can add up to 10 photos; {$room} more fit.");
+            $this->reset('incoming');
+
+            return;
+        }
+
+        $this->photos = [...$this->photos, ...$this->incoming];
+        $this->reset('incoming');
+    }
+
+    public function removePhoto(int $index): void
+    {
+        unset($this->photos[$index]);
+        $this->photos = array_values($this->photos);
+    }
 
     public string $title = '';
 
@@ -296,7 +327,19 @@ class Form extends Component
             return $recipe;
         });
 
-        session()->flash('status', 'Recipe saved.');
+        $photoFailed = false;
+        if (! $this->recipe) {
+            foreach ($this->photos as $file) {
+                try {
+                    $recipe->addPhoto($file);
+                } catch (\Throwable $e) {
+                    report($e);
+                    $photoFailed = true;
+                }
+            }
+        }
+
+        session()->flash('status', $photoFailed ? 'Recipe saved, but some photos could not be attached.' : 'Recipe saved.');
 
         return $this->redirectRoute('recipes.show', $recipe, navigate: true);
     }

@@ -55,13 +55,31 @@
         </div>
     </section>
 
+    @unless ($recipe)
+        <section class="card space-y-3 p-4" aria-labelledby="photos-h">
+            <h2 id="photos-h" class="font-semibold">Photos</h2>
+            <x-photo-picker model="incoming" />
+            @if (count($photos))
+                <ul class="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                    @foreach ($photos as $i => $photo)
+                        <li class="relative" wire:key="new-photo-{{ $photo->getFilename() }}">
+                            <img src="{{ $photo->temporaryUrl() }}" alt="Photo {{ $i + 1 }}" class="aspect-square w-full rounded-lg object-cover" />
+                            <button type="button" wire:click="removePhoto({{ $i }})" class="btn-danger absolute top-1 right-1 px-2 py-0.5 text-xs" aria-label="Remove photo {{ $i + 1 }}">×</button>
+                        </li>
+                    @endforeach
+                </ul>
+                <p class="text-xs text-stone-500">Captions and the cover photo can be set on the recipe page after saving.</p>
+            @endif
+        </section>
+    @endunless
+
     <section class="card space-y-3 p-4">
         <h2 class="font-semibold">Categories</h2>
         <div class="flex flex-wrap gap-2">
             @forelse ($this->allCategories as $category)
                 <label class="cursor-pointer">
                     <input type="checkbox" wire:model="categoryIds" value="{{ $category->id }}" class="peer sr-only" />
-                    <x-category-chip :category="$category" class="opacity-60 peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-amber-500 peer-focus-visible:ring-2" />
+                    <x-category-chip :category="$category" class="opacity-60 peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-red-500 peer-focus-visible:ring-2" />
                 </label>
             @empty
                 <p class="text-sm text-stone-500">No categories yet. Add one below.</p>
@@ -110,7 +128,7 @@
                         <li class="flex flex-wrap gap-x-2">
                             @if ($p['quantity'] !== null)
                                 @php($shown = \App\Support\RecipeScaler::scale((object) $p, 1.0, 'original'))
-                                <span class="rounded bg-amber-100 px-1.5 font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">{{ $shown->quantity }}{{ $shown->unit ? ' '.$shown->unit : '' }}</span>
+                                <span class="rounded bg-red-100 px-1.5 font-medium text-red-900 dark:bg-red-900/40 dark:text-red-200">{{ $shown->quantity }}{{ $shown->unit ? ' '.$shown->unit : '' }}</span>
                             @else
                                 <span class="rounded bg-stone-200 px-1.5 text-stone-600 dark:bg-stone-700 dark:text-stone-300" title="No amount found, so this will not scale">no amount</span>
                             @endif
@@ -128,7 +146,7 @@
         <ol class="space-y-3">
             @foreach ($steps as $i => $step)
                 <li class="flex gap-2" wire:key="step-{{ $i }}">
-                    <span class="mt-2 flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">{{ $i + 1 }}</span>
+                    <span class="mt-2 flex size-6 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">{{ $i + 1 }}</span>
                     <div class="min-w-0 flex-1 space-y-1.5">
                         <textarea wire:model="steps.{{ $i }}.body" rows="2" class="field" aria-label="Step {{ $i + 1 }}"></textarea>
                         <div class="flex flex-wrap items-center gap-2 text-sm">
