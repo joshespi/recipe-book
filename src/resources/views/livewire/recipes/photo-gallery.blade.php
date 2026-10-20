@@ -17,20 +17,7 @@
     @endif
 
     @if ($editable)
-        <div x-data="{ busy: false, progress: 0 }"
-             x-on:livewire-upload-start="busy = true"
-             x-on:livewire-upload-finish="busy = false"
-             x-on:livewire-upload-error="busy = false"
-             x-on:livewire-upload-progress="progress = $event.detail.progress"
-             class="space-y-2">
-            <label class="btn-secondary cursor-pointer">
-                📷 Add photos
-                <input type="file" wire:model="uploads" multiple accept="image/jpeg,image/png,image/webp,image/*" class="sr-only" />
-            </label>
-            <span x-show="busy" x-cloak class="ml-2 text-sm text-stone-500">Uploading… <span x-text="progress"></span>%</span>
-            @error('uploads') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
-            @error('uploads.*') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
-        </div>
+        <x-photo-picker model="uploads" />
     @endif
 
     @if ($photos->isNotEmpty())
@@ -40,7 +27,7 @@
                     <button type="button" x-on:click="show({{ $n }})" class="relative block w-full" aria-label="Open photo {{ $n + 1 }}">
                         <img src="{{ $photo->thumbUrl() }}" alt="{{ $photo->caption ?: $recipe->title.' photo' }}" loading="lazy" class="aspect-square w-full object-cover" />
                         @if ($recipe->cover_photo_id === $photo->id)
-                            <span class="absolute top-1.5 left-1.5 rounded-full bg-amber-600 px-2 py-0.5 text-xs font-medium text-white">Cover</span>
+                            <span class="absolute top-1.5 left-1.5 rounded-full bg-red-600 px-2 py-0.5 text-xs font-medium text-white">Cover</span>
                         @endif
                         @unless ($photo->isProcessed())
                             <span class="absolute right-1.5 bottom-1.5 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">{{ $photo->isPending() ? 'Processing…' : 'Could not process' }}</span>
