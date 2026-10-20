@@ -18,8 +18,8 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="favoritesOnly" class="rounded border-stone-300 text-amber-600 focus:ring-amber-500"> Favorites</label>
-            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="withPhotos" class="rounded border-stone-300 text-amber-600 focus:ring-amber-500"> Has photos</label>
+            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="favoritesOnly" class="rounded border-stone-300 text-red-600 focus:ring-red-500"> Favorites</label>
+            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="withPhotos" class="rounded border-stone-300 text-red-600 focus:ring-red-500"> Has photos</label>
 
             @if ($categories->isNotEmpty())
                 <span class="hidden h-4 w-px bg-stone-300 sm:block dark:bg-stone-700"></span>
@@ -34,7 +34,7 @@
             @endif
 
             @if ($filtered)
-                <button type="button" wire:click="clearFilters" class="ml-auto text-amber-700 underline dark:text-amber-400">Clear filters</button>
+                <button type="button" wire:click="clearFilters" class="ml-auto text-red-700 underline dark:text-red-400">Clear filters</button>
             @endif
         </div>
 
@@ -42,7 +42,7 @@
             <div class="flex flex-wrap gap-1.5 text-xs" aria-label="Tags">
                 @foreach ($tags as $t)
                     <button type="button" wire:click="toggleTag('{{ $t->slug }}')" aria-pressed="{{ $tag === $t->slug ? 'true' : 'false' }}"
-                            class="rounded-full border px-2.5 py-0.5 {{ $tag === $t->slug ? 'border-amber-600 bg-amber-600 text-white' : 'border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800' }}">#{{ $t->name }}</button>
+                            class="rounded-full border px-2.5 py-0.5 {{ $tag === $t->slug ? 'border-red-600 bg-red-600 text-white' : 'border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800' }}">#{{ $t->name }}</button>
                 @endforeach
             </div>
         @endif

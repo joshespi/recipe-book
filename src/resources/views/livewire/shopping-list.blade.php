@@ -6,7 +6,7 @@
             <div class="inline-flex overflow-hidden rounded-lg border border-stone-300 dark:border-stone-700" role="group" aria-label="Units">
                 @foreach (['us' => 'US', 'metric' => 'Metric'] as $key => $label)
                     <button type="button" wire:click="$set('units', '{{ $key }}')" aria-pressed="{{ $units === $key ? 'true' : 'false' }}"
-                            class="px-3 py-1.5 font-medium {{ $units === $key ? 'bg-amber-600 text-white' : 'bg-white text-stone-700 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800' }}">{{ $label }}</button>
+                            class="px-3 py-1.5 font-medium {{ $units === $key ? 'bg-red-600 text-white' : 'bg-white text-stone-700 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800' }}">{{ $label }}</button>
                 @endforeach
             </div>
         </div>
@@ -20,7 +20,7 @@
             @forelse ($recipes as $recipe)
                 <div class="flex items-center gap-2" wire:key="pick-{{ $recipe->id }}">
                     <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
-                        <input type="checkbox" wire:model.live="selected" value="{{ $recipe->id }}" class="rounded border-stone-300 text-amber-600 focus:ring-amber-500" />
+                        <input type="checkbox" wire:model.live="selected" value="{{ $recipe->id }}" class="rounded border-stone-300 text-red-600 focus:ring-red-500" />
                         <span class="truncate">{{ $recipe->title }}</span>
                     </label>
                     @if (in_array((string) $recipe->id, array_map('strval', $selected), true))
@@ -71,7 +71,7 @@
             @forelse ($lines as $line)
                 @php($key = \Illuminate\Support\Str::lower($line->name).'|'.$line->text())
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg p-2 text-lg hover:bg-stone-50 dark:hover:bg-stone-800/60" wire:key="line-{{ md5($key) }}">
-                    <input type="checkbox" class="mt-1.5 size-5 shrink-0 rounded border-stone-400 text-amber-600 focus:ring-amber-500" x-on:change="toggle(@js($key))" :checked="done[@js($key)]" />
+                    <input type="checkbox" class="mt-1.5 size-5 shrink-0 rounded border-stone-400 text-red-600 focus:ring-red-500" x-on:change="toggle(@js($key))" :checked="done[@js($key)]" />
                     <x-ingredient-line :line="$line" ::class="done[{{ \Illuminate\Support\Js::from($key) }}] && 'text-stone-400 line-through dark:text-stone-600'" />
                 </label>
             @empty

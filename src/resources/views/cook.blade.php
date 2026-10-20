@@ -16,7 +16,7 @@
                 <div class="min-w-0 flex-1">
                     <h1 class="truncate font-semibold">{{ $recipe->title }}</h1>
                     @if (abs($factor - 1) > 0.0005)
-                        <p class="text-xs text-amber-700 dark:text-amber-400">Scaled {{ \App\Support\Quantity::format($factor) }}×</p>
+                        <p class="text-xs text-red-700 dark:text-red-400">Scaled {{ \App\Support\Quantity::format($factor) }}×</p>
                     @endif
                 </div>
                 <span x-show="awake" x-cloak class="hidden text-xs text-stone-500 sm:inline" title="The screen will stay on while you cook">☀ Screen on</span>
@@ -25,10 +25,10 @@
             <nav class="mx-auto flex max-w-3xl gap-1 px-4 pb-2" aria-label="Cook mode sections">
                 <button type="button" x-on:click="tab = 'steps'" :aria-pressed="tab === 'steps'"
                         class="rounded-lg px-4 py-1.5 text-sm font-medium"
-                        :class="tab === 'steps' ? 'bg-amber-600 text-white' : 'bg-stone-100 dark:bg-stone-800'">Steps</button>
+                        :class="tab === 'steps' ? 'bg-red-600 text-white' : 'bg-stone-100 dark:bg-stone-800'">Steps</button>
                 <button type="button" x-on:click="tab = 'ingredients'" :aria-pressed="tab === 'ingredients'"
                         class="rounded-lg px-4 py-1.5 text-sm font-medium"
-                        :class="tab === 'ingredients' ? 'bg-amber-600 text-white' : 'bg-stone-100 dark:bg-stone-800'">
+                        :class="tab === 'ingredients' ? 'bg-red-600 text-white' : 'bg-stone-100 dark:bg-stone-800'">
                     Ingredients <span class="opacity-75" x-text="'(' + checkedCount + '/' + ingredientCount + ')'"></span>
                 </button>
             </nav>
@@ -38,14 +38,14 @@
             <section x-show="tab === 'ingredients'" x-cloak aria-label="Ingredients">
                 @foreach ($sections as $section)
                     @if ($section['name'])
-                        <h2 class="mt-6 mb-2 text-lg font-semibold text-amber-800 first:mt-0 dark:text-amber-400">{{ $section['name'] }}</h2>
+                        <h2 class="mt-6 mb-2 text-lg font-semibold text-red-800 first:mt-0 dark:text-red-400">{{ $section['name'] }}</h2>
                     @endif
                     <ul class="space-y-1">
                         @foreach ($section['lines'] as $line)
                             @php($key = $loop->parent->index.'-'.$loop->index)
                             <li>
                                 <label class="flex cursor-pointer items-start gap-3 rounded-lg p-3 text-xl hover:bg-stone-100 dark:hover:bg-stone-900">
-                                    <input type="checkbox" class="mt-1.5 size-5 shrink-0 rounded border-stone-400 text-amber-600 focus:ring-amber-500"
+                                    <input type="checkbox" class="mt-1.5 size-5 shrink-0 rounded border-stone-400 text-red-600 focus:ring-red-500"
                                            x-on:change="toggleIngredient('{{ $key }}')" :checked="checked['{{ $key }}']" />
                                     <x-ingredient-line :line="$line" ::class="checked['{{ $key }}'] && 'text-stone-400 line-through dark:text-stone-600'" />
                                 </label>
@@ -60,7 +60,7 @@
                     <p class="text-stone-500">This recipe has no steps yet.</p>
                 @else
                     <div class="mb-4 h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800" role="progressbar" :aria-valuenow="i + 1" aria-valuemin="1" :aria-valuemax="steps.length">
-                        <div class="h-full bg-amber-500 transition-all" :style="'width:' + ((i + 1) / steps.length * 100) + '%'"></div>
+                        <div class="h-full bg-red-500 transition-all" :style="'width:' + ((i + 1) / steps.length * 100) + '%'"></div>
                     </div>
                     <p class="mb-2 text-sm font-medium text-stone-500">Step <span x-text="i + 1"></span> of <span x-text="steps.length"></span></p>
 

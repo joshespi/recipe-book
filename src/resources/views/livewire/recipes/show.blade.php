@@ -14,7 +14,7 @@
 
             <div class="flex items-center gap-1 print:hidden" role="group" aria-label="Rating">
                 @foreach (range(1, 5) as $star)
-                    <button type="button" wire:click="setRating({{ $star }})" class="text-2xl leading-none {{ $recipe->rating && $star <= $recipe->rating ? 'text-amber-500' : 'text-stone-300 dark:text-stone-600' }}" aria-label="Rate {{ $star }} of 5">★</button>
+                    <button type="button" wire:click="setRating({{ $star }})" class="text-2xl leading-none {{ $recipe->rating && $star <= $recipe->rating ? 'text-red-500' : 'text-stone-300 dark:text-stone-600' }}" aria-label="Rate {{ $star }} of 5">★</button>
                 @endforeach
             </div>
 
