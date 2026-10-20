@@ -61,13 +61,13 @@
     @endif
 
     @if ($logs->isNotEmpty())
-        <ol class="space-y-3 border-l-2 border-amber-200 pl-4 dark:border-stone-700">
+        <ol class="space-y-3 border-l-2 border-red-200 pl-4 dark:border-stone-700">
             @foreach ($logs as $log)
                 <li class="relative" wire:key="log-{{ $log->id }}">
-                    <span class="absolute -left-[1.4rem] top-1.5 size-2.5 rounded-full bg-amber-500"></span>
+                    <span class="absolute -left-[1.4rem] top-1.5 size-2.5 rounded-full bg-red-500"></span>
                     <div class="flex flex-wrap items-center gap-x-3 text-sm">
                         <strong>{{ $log->cooked_on->format('M j, Y') }}</strong>
-                        @if ($log->rating)<span class="text-amber-600">{{ str_repeat('★', $log->rating) }}</span>@endif
+                        @if ($log->rating)<span class="text-red-600">{{ str_repeat('★', $log->rating) }}</span>@endif
                         @if (abs($log->scale_used - 1) > 0.0005)<span class="text-stone-500">at {{ \App\Support\Quantity::format($log->scale_used) }}×</span>@endif
                         <button type="button" wire:click="delete({{ $log->id }})" wire:confirm="Delete this entry and its photos?" class="ml-auto text-xs text-red-600 underline">Delete</button>
                     </div>

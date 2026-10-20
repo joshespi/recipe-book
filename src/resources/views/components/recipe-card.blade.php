@@ -6,14 +6,14 @@
             <img src="{{ $cover->thumbUrl() }}" alt="{{ $recipe->title }}" loading="lazy"
                  class="aspect-[4/3] w-full object-cover" />
         @else
-            <div class="flex aspect-[4/3] w-full items-center justify-center bg-amber-50 text-4xl dark:bg-stone-800" aria-hidden="true">🍽️</div>
+            <div class="flex aspect-[4/3] w-full items-center justify-center bg-red-50 text-4xl dark:bg-stone-800" aria-hidden="true">🍽️</div>
         @endif
     </a>
 
     {{ $slot }}
 
     <div class="flex flex-1 flex-col gap-2 p-3">
-        <a href="{{ $href }}" class="font-semibold leading-snug text-stone-900 hover:text-amber-700 dark:text-stone-100 dark:hover:text-amber-400" wire:navigate>
+        <a href="{{ $href }}" class="font-semibold leading-snug text-stone-900 hover:text-red-700 dark:text-stone-100 dark:hover:text-red-400" wire:navigate>
             {{ $recipe->title }}
         </a>
 

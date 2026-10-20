@@ -25,7 +25,7 @@
 @if ($recipe->tags->isNotEmpty())
     <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
         @foreach ($recipe->tags as $tag)
-            <a href="{{ $tagUrl($tag) }}" class="hover:text-amber-700 dark:hover:text-amber-400" @unless ($shared) wire:navigate @endunless>#{{ $tag->name }}</a>
+            <a href="{{ $tagUrl($tag) }}" class="hover:text-red-700 dark:hover:text-red-400" @unless ($shared) wire:navigate @endunless>#{{ $tag->name }}</a>
         @endforeach
     </p>
 @endif
@@ -41,7 +41,7 @@
 @if ($recipe->source_name || $recipe->source_url)
     <p class="text-sm text-stone-500">Source:
         @if ($recipe->source_url)
-            <a href="{{ $recipe->source_url }}" target="_blank" rel="noopener noreferrer nofollow" class="text-amber-700 underline dark:text-amber-400">{{ $recipe->source_name ?: parse_url($recipe->source_url, PHP_URL_HOST) }}</a>
+            <a href="{{ $recipe->source_url }}" target="_blank" rel="noopener noreferrer nofollow" class="text-red-700 underline dark:text-red-400">{{ $recipe->source_name ?: parse_url($recipe->source_url, PHP_URL_HOST) }}</a>
         @else
             {{ $recipe->source_name }}
         @endif

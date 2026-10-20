@@ -16,4 +16,4 @@
     ];
     $classes = $palette[$category->color] ?? $palette['stone'];
 @endphp
-<span {{ $attributes->class(['inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', $classes, 'ring-2 ring-amber-500' => $active]) }}>{{ $category->name }}</span>
+<span {{ $attributes->class(['inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', $classes, 'ring-2 ring-red-500' => $active]) }}>{{ $category->name }}</span>

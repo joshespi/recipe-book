@@ -9,7 +9,7 @@
         <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80 print:hidden"
                 x-data="{ open: false }">
             <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-                <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-amber-700 dark:text-amber-400" wire:navigate>
+                <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400" wire:navigate>
                     <span aria-hidden="true" class="text-xl">🍲</span>
                     <span class="hidden sm:inline">{{ config('app.name') }}</span>
                 </a>
@@ -25,7 +25,7 @@
 
                 <div class="ml-auto flex items-center gap-2">
                     @auth
-                        <a href="{{ route('recipes.create') }}" class="hidden rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 sm:inline-block" wire:navigate>New recipe</a>
+                        <a href="{{ route('recipes.create') }}" class="hidden rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 sm:inline-block" wire:navigate>New recipe</a>
                     @endauth
 
                     <div x-data class="flex items-center rounded-lg border border-stone-200 p-0.5 dark:border-stone-700" role="radiogroup" aria-label="Theme">
@@ -34,7 +34,7 @@
                                     :aria-checked="$flux.appearance === '{{ $mode }}'"
                                     x-on:click="$flux.appearance = '{{ $mode }}'"
                                     class="rounded-md p-1.5 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
-                                    :class="$flux.appearance === '{{ $mode }}' && 'bg-amber-100 text-amber-800 dark:bg-stone-700 dark:text-amber-300'">
+                                    :class="$flux.appearance === '{{ $mode }}' && 'bg-red-100 text-red-800 dark:bg-stone-700 dark:text-red-300'">
                                 <flux:icon :name="$icon" class="size-4" />
                             </button>
                         @endforeach

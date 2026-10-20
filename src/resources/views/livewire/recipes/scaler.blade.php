@@ -7,7 +7,7 @@
                     @foreach ($presets as $value => $label)
                         <button type="button" wire:click="setScale('{{ $value }}')"
                                 aria-pressed="{{ abs($factor - (float) $value) < 0.0005 ? 'true' : 'false' }}"
-                                class="px-3 py-1.5 text-sm font-medium {{ abs($factor - (float) $value) < 0.0005 ? 'bg-amber-600 text-white' : 'bg-white text-stone-700 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800' }}">{{ $label }}</button>
+                                class="px-3 py-1.5 text-sm font-medium {{ abs($factor - (float) $value) < 0.0005 ? 'bg-red-600 text-white' : 'bg-white text-stone-700 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800' }}">{{ $label }}</button>
                     @endforeach
                 </div>
                 <label class="sr-only" for="custom-scale-{{ $this->getId() }}">Custom scale</label>
@@ -32,14 +32,14 @@
                 <div class="inline-flex overflow-hidden rounded-lg border border-stone-300 dark:border-stone-700" role="group" aria-label="Units">
                     @foreach (['original' => 'Original', 'us' => 'US', 'metric' => 'Metric'] as $key => $label)
                         <button type="button" wire:click="setUnits('{{ $key }}')" aria-pressed="{{ $units === $key ? 'true' : 'false' }}"
-                                class="px-3 py-1.5 text-sm font-medium {{ $units === $key ? 'bg-amber-600 text-white' : 'bg-white text-stone-700 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800' }}">{{ $label }}</button>
+                                class="px-3 py-1.5 text-sm font-medium {{ $units === $key ? 'bg-red-600 text-white' : 'bg-white text-stone-700 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800' }}">{{ $label }}</button>
                     @endforeach
                 </div>
             </div>
         </div>
 
         @if (abs($factor - 1.0) > 0.0005)
-            <p class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-200" role="status">
+            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900 dark:bg-red-900/20 dark:text-red-200" role="status">
                 Scaled {{ \App\Support\Quantity::format($factor) }}× — amounts written inside the steps, the pan size and the cooking times may need adjusting.
             </p>
         @endif
@@ -50,12 +50,12 @@
             <h2 id="ing-h-{{ $this->getId() }}" class="mb-3 text-lg font-semibold">Ingredients</h2>
             @forelse ($sections as $section)
                 @if ($section['name'])
-                    <h3 class="mt-4 mb-1.5 font-semibold text-amber-800 first:mt-0 dark:text-amber-400">{{ $section['name'] }}</h3>
+                    <h3 class="mt-4 mb-1.5 font-semibold text-red-800 first:mt-0 dark:text-red-400">{{ $section['name'] }}</h3>
                 @endif
                 <ul class="space-y-1.5">
                     @foreach ($section['lines'] as $line)
                         <li class="flex gap-2">
-                            <span class="mt-2 size-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden="true"></span>
+                            <span class="mt-2 size-1.5 shrink-0 rounded-full bg-red-500" aria-hidden="true"></span>
                             <x-ingredient-line :line="$line" />
                         </li>
                     @endforeach
@@ -70,7 +70,7 @@
             <ol class="space-y-4">
                 @forelse ($recipe->steps as $n => $step)
                     <li class="flex gap-3">
-                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">{{ $n + 1 }}</span>
+                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-sm font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">{{ $n + 1 }}</span>
                         <div class="min-w-0 flex-1 whitespace-pre-line pt-0.5">{{ $step->body }}@if ($step->timer_minutes) <span class="ml-1 whitespace-nowrap rounded bg-stone-100 px-1.5 text-xs text-stone-600 dark:bg-stone-800 dark:text-stone-300">⏲ {{ $step->timer_minutes }} min</span>@endif</div>
                     </li>
                 @empty
