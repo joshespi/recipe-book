@@ -10,7 +10,7 @@
                 x-data="{ open: false }">
             <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400" wire:navigate>
-                    <span aria-hidden="true" class="text-xl">🍲</span>
+                    <img src="/icons/logo.png" alt="" class="size-9 rounded-lg" width="36" height="36">
                     <span class="hidden sm:inline">{{ config('app.name') }}</span>
                 </a>
 

@@ -1,1 +1,1 @@
-<span {{ $attributes->class('inline-flex items-center justify-center text-4xl leading-none') }} aria-hidden="true">🍲</span>
+<img src="/icons/logo.png" alt="" {{ $attributes->class('inline-block rounded-lg') }} aria-hidden="true">

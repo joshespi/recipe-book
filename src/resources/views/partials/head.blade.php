@@ -7,7 +7,8 @@
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🍲%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" href="/icons/icon-192.png" sizes="192x192">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#dc2626">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
