@@ -9,6 +9,7 @@ use App\Models\Tag;
 use App\Support\ImportException;
 use App\Support\IngredientParser;
 use App\Support\RecipeImporter;
+use App\Support\Reorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
@@ -31,11 +32,12 @@ class Form extends Component
 
     public function updatedIncoming(): void
     {
-        $this->validate(Photo::uploadRules('incoming', 10), Photo::uploadMessages('incoming'));
+        $this->validate(Photo::uploadRules('incoming'), Photo::uploadMessages('incoming'));
 
-        $room = 10 - count($this->photos);
+        $max = Photo::MAX_PER_UPLOAD;
+        $room = $max - count($this->photos);
         if (count($this->incoming) > $room) {
-            $this->addError('incoming', "You can add up to 10 photos; {$room} more fit.");
+            $this->addError('incoming', "You can add up to {$max} photos; {$room} more fit.");
             $this->reset('incoming');
 
             return;
@@ -89,7 +91,7 @@ class Form extends Component
     {
         if (! $recipe || ! $recipe->exists) {
             $this->authorize('create', Recipe::class);
-            $this->steps = [['body' => '', 'timer' => null]];
+            $this->steps = [self::blankStep()];
 
             return;
         }
@@ -100,10 +102,10 @@ class Form extends Component
 
         $this->title = $recipe->title;
         $this->description = (string) $recipe->description;
-        $this->servings = $recipe->servings !== null ? (string) (float) $recipe->servings : null;
+        $this->servings = self::nullableString($recipe->servings !== null ? (float) $recipe->servings : null);
         $this->yield_label = (string) $recipe->yield_label;
-        $this->prep_minutes = $recipe->prep_minutes !== null ? (string) $recipe->prep_minutes : null;
-        $this->cook_minutes = $recipe->cook_minutes !== null ? (string) $recipe->cook_minutes : null;
+        $this->prep_minutes = self::nullableString($recipe->prep_minutes);
+        $this->cook_minutes = self::nullableString($recipe->cook_minutes);
         $this->source_name = (string) $recipe->source_name;
         $this->source_url = (string) $recipe->source_url;
         $this->notes = (string) $recipe->notes;
@@ -112,8 +114,20 @@ class Form extends Component
         $this->tagsText = $recipe->tags->pluck('name')->join(', ');
         $this->ingredientsText = $this->ingredientsToText($recipe);
         $this->steps = $recipe->steps
-            ->map(fn ($s) => ['body' => $s->body, 'timer' => $s->timer_minutes !== null ? (string) $s->timer_minutes : null])
-            ->all() ?: [['body' => '', 'timer' => null]];
+            ->map(fn ($s) => ['body' => $s->body, 'timer' => self::nullableString($s->timer_minutes)])
+            ->all() ?: [self::blankStep()];
+    }
+
+    /** @return array{body: string, timer: ?string} */
+    private static function blankStep(): array
+    {
+        return ['body' => '', 'timer' => null];
+    }
+
+    /** Form fields hold numbers as strings so an empty input stays empty rather than becoming 0. */
+    private static function nullableString(int|float|string|null $value): ?string
+    {
+        return $value !== null ? (string) $value : null;
     }
 
     private function ingredientsToText(Recipe $recipe): string
@@ -184,10 +198,10 @@ class Form extends Component
         $this->description = $data['description'];
         $this->servings = $data['servings'];
         $this->yield_label = $data['yield_label'];
-        $this->prep_minutes = $data['prep_minutes'] !== null ? (string) $data['prep_minutes'] : null;
-        $this->cook_minutes = $data['cook_minutes'] !== null ? (string) $data['cook_minutes'] : null;
+        $this->prep_minutes = self::nullableString($data['prep_minutes']);
+        $this->cook_minutes = self::nullableString($data['cook_minutes']);
         $this->ingredientsText = implode("\n", $data['ingredients']);
-        $this->steps = array_map(fn ($s) => ['body' => $s, 'timer' => null], $data['steps']) ?: [['body' => '', 'timer' => null]];
+        $this->steps = array_map(fn ($s) => ['body' => $s] + self::blankStep(), $data['steps']) ?: [self::blankStep()];
         $this->source_name = $data['source_name'];
         $this->source_url = $data['source_url'];
 
@@ -197,22 +211,18 @@ class Form extends Component
 
     public function addStep(): void
     {
-        $this->steps[] = ['body' => '', 'timer' => null];
+        $this->steps[] = self::blankStep();
     }
 
     public function removeStep(int $index): void
     {
         unset($this->steps[$index]);
-        $this->steps = array_values($this->steps) ?: [['body' => '', 'timer' => null]];
+        $this->steps = array_values($this->steps) ?: [self::blankStep()];
     }
 
     public function moveStep(int $index, int $direction): void
     {
-        $target = $index + ($direction < 0 ? -1 : 1);
-        if (! isset($this->steps[$index], $this->steps[$target])) {
-            return;
-        }
-        [$this->steps[$index], $this->steps[$target]] = [$this->steps[$target], $this->steps[$index]];
+        $this->steps = Reorder::swap($this->steps, $index, $direction) ?? $this->steps;
     }
 
     public function addCategory(): void
