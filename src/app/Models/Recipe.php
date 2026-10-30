@@ -28,6 +28,9 @@ class Recipe extends Model
 
     public const VISIBILITIES = [self::PRIVATE, self::UNLISTED, self::PUBLIC];
 
+    /** Length of the share token; the share routes accept exactly this many characters. */
+    public const TOKEN_LENGTH = 32;
+
     protected $fillable = [
         'title', 'description', 'servings', 'yield_label',
         'prep_minutes', 'cook_minutes', 'total_minutes',
@@ -47,14 +50,24 @@ class Recipe extends Model
     protected static function booted(): void
     {
         static::creating(function (Recipe $recipe) {
-            $recipe->share_token ??= Str::random(32);
+            $recipe->share_token ??= static::newToken();
             $recipe->slug ??= UniqueSlug::make(static::withTrashed(), $recipe->title, 'recipe');
         });
     }
 
+    private static function newToken(): string
+    {
+        return Str::random(self::TOKEN_LENGTH);
+    }
+
     public function regenerateShareToken(): void
     {
-        $this->forceFill(['share_token' => Str::random(32)])->save();
+        $this->forceFill(['share_token' => static::newToken()])->save();
+    }
+
+    public function toggleFavorite(): void
+    {
+        $this->update(['is_favorite' => ! $this->is_favorite]);
     }
 
     public function isShareable(): bool

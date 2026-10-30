@@ -66,7 +66,7 @@ class Index extends Component
     {
         $recipe = Recipe::findOrFail($id);
         $this->authorize('update', $recipe);
-        $recipe->update(['is_favorite' => ! $recipe->is_favorite]);
+        $recipe->toggleFavorite();
     }
 
     public function render()

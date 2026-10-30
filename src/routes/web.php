@@ -4,6 +4,7 @@ use App\Http\Controllers\CookModeController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\SharedRecipeController;
 use App\Livewire\Categories\Manage as ManageCategories;
+use App\Models\Recipe;
 use App\Livewire\Recipes\Form as RecipeForm;
 use App\Livewire\Recipes\Index as RecipeIndex;
 use App\Livewire\Recipes\Show as RecipeShow;
@@ -17,12 +18,10 @@ Route::get('/', fn () => auth()->check()
 
 // Public: the share link and the list of recipes marked public.
 Route::get('browse', [SharedRecipeController::class, 'browse'])->name('browse');
-Route::get('s/{token}', [SharedRecipeController::class, 'show'])
-    ->where('token', '[A-Za-z0-9]{32}')
-    ->name('shared.show');
-Route::get('s/{token}/cook', [CookModeController::class, 'shared'])
-    ->where('token', '[A-Za-z0-9]{32}')
-    ->name('shared.cook');
+Route::prefix('s/{token}')->where(['token' => '[A-Za-z0-9]{'.Recipe::TOKEN_LENGTH.'}'])->group(function () {
+    Route::get('/', [SharedRecipeController::class, 'show'])->name('shared.show');
+    Route::get('cook', [CookModeController::class, 'shared'])->name('shared.cook');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('dashboard', 'recipes')->name('dashboard');

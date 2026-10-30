@@ -14,13 +14,13 @@ class Show extends Component
     public function mount(Recipe $recipe): void
     {
         $this->authorize('view', $recipe);
-        $this->recipe = $recipe->load(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps']);
+        $this->recipe = $recipe->load(['categories', 'tags', 'ingredientGroups', 'ingredients', 'steps', 'coverPhoto', 'photos']);
     }
 
     public function toggleFavorite(): void
     {
         $this->authorize('update', $this->recipe);
-        $this->recipe->update(['is_favorite' => ! $this->recipe->is_favorite]);
+        $this->recipe->toggleFavorite();
     }
 
     /** Clicking the current rating again clears it. */
