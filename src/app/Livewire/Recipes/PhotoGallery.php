@@ -4,6 +4,7 @@ namespace App\Livewire\Recipes;
 
 use App\Models\Photo;
 use App\Models\Recipe;
+use App\Support\Reorder;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -53,7 +54,7 @@ class PhotoGallery extends Component
     {
         $this->guard();
 
-        $this->validate(Photo::uploadRules('uploads', 10), Photo::uploadMessages('uploads'));
+        $this->validate(Photo::uploadRules('uploads'), Photo::uploadMessages('uploads'));
 
         foreach ($this->uploads as $file) {
             $this->recipe->addPhoto($file);
@@ -77,16 +78,8 @@ class PhotoGallery extends Component
     public function move(int $id, int $direction): void
     {
         $this->guard();
-        $photos = $this->recipe->photos()->get()->values();
-        $index = $photos->search(fn ($p) => $p->id === $id);
-        $target = $index === false ? false : $index + ($direction < 0 ? -1 : 1);
-        if ($index === false || ! isset($photos[$target])) {
-            return;
-        }
-
-        $order = $photos->pluck('id')->all();
-        [$order[$index], $order[$target]] = [$order[$target], $order[$index]];
-        foreach ($order as $position => $photoId) {
+        $order = Reorder::swapId($this->recipe->photos()->pluck('id')->all(), $id, $direction);
+        foreach ($order ?? [] as $position => $photoId) {
             Photo::whereKey($photoId)->update(['position' => $position + 1]);
         }
     }

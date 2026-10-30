@@ -3,6 +3,7 @@
 namespace App\Livewire\Categories;
 
 use App\Models\Category;
+use App\Support\Reorder;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -22,12 +23,18 @@ class Manage extends Component
 
     public string $editColor = 'amber';
 
+    /** The same name and colour rules apply to the add form and the inline edit form. */
+    private function fieldRules(string $nameField, string $colorField): array
+    {
+        return [
+            $nameField => 'required|string|max:60',
+            $colorField => ['required', Rule::in(Category::COLORS)],
+        ];
+    }
+
     public function add(): void
     {
-        $data = $this->validate([
-            'name' => 'required|string|max:60',
-            'color' => ['required', Rule::in(Category::COLORS)],
-        ]);
+        $data = $this->validate($this->fieldRules('name', 'color'));
 
         Category::createLast($data['name'], $data['color']);
         $this->reset('name');
@@ -49,10 +56,7 @@ class Manage extends Component
 
     public function update(): void
     {
-        $data = $this->validate([
-            'editName' => 'required|string|max:60',
-            'editColor' => ['required', Rule::in(Category::COLORS)],
-        ]);
+        $data = $this->validate($this->fieldRules('editName', 'editColor'));
 
         Category::findOrFail($this->editingId)->update(['name' => $data['editName'], 'color' => $data['editColor']]);
         $this->cancelEdit();
@@ -68,15 +72,8 @@ class Manage extends Component
 
     public function move(int $id, int $direction): void
     {
-        $ordered = Category::ordered()->pluck('id')->all();
-        $index = array_search($id, $ordered, true);
-        $target = $index === false ? false : $index + ($direction < 0 ? -1 : 1);
-        if ($index === false || ! isset($ordered[$target])) {
-            return;
-        }
-
-        [$ordered[$index], $ordered[$target]] = [$ordered[$target], $ordered[$index]];
-        foreach ($ordered as $position => $categoryId) {
+        $ordered = Reorder::swapId(Category::ordered()->pluck('id')->all(), $id, $direction);
+        foreach ($ordered ?? [] as $position => $categoryId) {
             Category::whereKey($categoryId)->update(['sort_order' => $position]);
         }
     }
