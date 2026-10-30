@@ -18,11 +18,20 @@ class ExportController extends Controller
             ->lazy(100);
     }
 
+    private function download(string $extension, string $contentType, callable $body): StreamedResponse
+    {
+        return response()->streamDownload($body, 'recipes-'.now()->format('Y-m-d').'.'.$extension, ['Content-Type' => $contentType.'; charset=utf-8']);
+    }
+
+    /** Group names keyed by group id, for labelling each ingredient with its section. */
+    private function groupNames(Recipe $recipe)
+    {
+        return $recipe->ingredientGroups->pluck('name', 'id');
+    }
+
     public function json(Request $request): StreamedResponse
     {
-        $name = 'recipes-'.now()->format('Y-m-d').'.json';
-
-        return response()->streamDownload(function () use ($request) {
+        return $this->download('json', 'application/json', function () use ($request) {
             echo '{"exported_at":'.json_encode(now()->toIso8601String()).',"recipes":[';
             $first = true;
             foreach ($this->recipes($request) as $recipe) {
@@ -30,23 +39,21 @@ class ExportController extends Controller
                 $first = false;
             }
             echo ']}';
-        }, $name, ['Content-Type' => 'application/json; charset=utf-8']);
+        });
     }
 
     public function markdown(Request $request): StreamedResponse
     {
-        $name = 'recipes-'.now()->format('Y-m-d').'.md';
-
-        return response()->streamDownload(function () use ($request) {
+        return $this->download('md', 'text/markdown', function () use ($request) {
             foreach ($this->recipes($request) as $recipe) {
                 echo $this->toMarkdown($recipe)."\n\n---\n\n";
             }
-        }, $name, ['Content-Type' => 'text/markdown; charset=utf-8']);
+        });
     }
 
     private function toArray(Recipe $recipe): array
     {
-        $groups = $recipe->ingredientGroups->pluck('name', 'id');
+        $groups = $this->groupNames($recipe);
 
         return [
             'title' => $recipe->title,
@@ -102,7 +109,7 @@ class ExportController extends Controller
         }
 
         $md[] = '## Ingredients';
-        $groups = $recipe->ingredientGroups->pluck('name', 'id');
+        $groups = $this->groupNames($recipe);
         $lines = [];
         $group = false;
         foreach ($recipe->ingredients as $ingredient) {
