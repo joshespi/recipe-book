@@ -18,8 +18,14 @@ class Photo extends Model
     /** Largest photo accepted, in KB. Livewire's temporary upload limit (config/livewire.php) uses it too. */
     public const MAX_KB = 20480;
 
+    /** Most photos accepted in one upload (and attached to a new recipe form). */
+    public const MAX_PER_UPLOAD = 10;
+
+    /** How long a photo may wait for processing before it counts as failed. */
+    public const PENDING_MINUTES = 10;
+
     /** Rules for a multi-file upload field such as "uploads". */
-    public static function uploadRules(string $field, int $maxFiles): array
+    public static function uploadRules(string $field, int $maxFiles = self::MAX_PER_UPLOAD): array
     {
         return [
             $field => "array|max:{$maxFiles}",
@@ -78,7 +84,7 @@ class Photo extends Model
     /** A photo still waiting for (or past) processing, as opposed to one that has failed for good. */
     public function isPending(): bool
     {
-        return ! $this->isProcessed() && $this->created_at?->gt(now()->subMinutes(10));
+        return ! $this->isProcessed() && $this->created_at?->gt(now()->subMinutes(self::PENDING_MINUTES));
     }
 
     /** The raw upload sits on a private disk until processing, so show a placeholder meanwhile. */

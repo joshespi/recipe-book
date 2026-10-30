@@ -50,7 +50,7 @@ class CookLogs extends Component
             'notes' => 'nullable|string|max:5000',
             'rating' => 'nullable|integer|min:1|max:5',
             'scale_used' => 'required|numeric|min:0.125|max:50',
-            ...Photo::uploadRules('photos', 10),
+            ...Photo::uploadRules('photos'),
         ], Photo::uploadMessages('photos'));
 
         $log = $this->recipe->cookLogs()->create([
