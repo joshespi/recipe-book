@@ -11,7 +11,7 @@ use App\Models\User;
  */
 class RecipePolicy
 {
-    public function viewAny(User $user): bool
+    public function create(User $user): bool
     {
         return true;
     }
@@ -21,18 +21,13 @@ class RecipePolicy
         return $user->id === $recipe->user_id;
     }
 
-    public function create(User $user): bool
-    {
-        return true;
-    }
-
     public function update(User $user, Recipe $recipe): bool
     {
-        return $user->id === $recipe->user_id;
+        return $this->view($user, $recipe);
     }
 
     public function delete(User $user, Recipe $recipe): bool
     {
-        return $user->id === $recipe->user_id;
+        return $this->view($user, $recipe);
     }
 }
