@@ -36,9 +36,7 @@ class Scaler extends Component
     /** Keeps the URL state valid: a known unit system and the scale as a plain number ("0.5", "2"). */
     private function normalize(): void
     {
-        if (! in_array($this->units, RecipeScaler::SYSTEMS, true)) {
-            $this->units = 'original';
-        }
+        $this->units = RecipeScaler::normalizeSystem($this->units);
         $this->scale = Quantity::decimal($this->factor(), 3);
     }
 

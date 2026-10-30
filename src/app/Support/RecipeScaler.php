@@ -11,6 +11,12 @@ final class RecipeScaler
 {
     public const SYSTEMS = ['original', 'us', 'metric'];
 
+    /** A known unit system, or "original" for anything else. */
+    public static function normalizeSystem(?string $system): string
+    {
+        return in_array($system, self::SYSTEMS, true) ? $system : 'original';
+    }
+
     /** The factor needed to turn a recipe written for $from servings into $to servings. */
     public static function factorForServings(?float $from, ?float $to): float
     {
@@ -66,9 +72,7 @@ final class RecipeScaler
      */
     public static function scale(object $ingredient, float $factor, string $system = 'original'): ScaledLine
     {
-        if (! in_array($system, self::SYSTEMS, true)) {
-            $system = 'original';
-        }
+        $system = self::normalizeSystem($system);
 
         $name = $ingredient->name;
         $note = $ingredient->note ?: null;
