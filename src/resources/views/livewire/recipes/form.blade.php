@@ -174,13 +174,18 @@
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
                 <label for="source_name" class="label">Source</label>
-                <input id="source_name" type="text" wire:model="source_name" class="field" placeholder="Grandma, a cookbook, a website…" />
+                <input id="source_name" type="text" wire:model="source_name" class="field" placeholder="A cookbook, a website…" />
             </div>
             <div>
                 <label for="source_url" class="label">Source link</label>
                 <input id="source_url" type="url" wire:model="source_url" class="field" placeholder="https://…" />
                 @error('source_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
+        </div>
+        <div>
+            <label for="contributed_by" class="label">Contributed by</label>
+            <input id="contributed_by" type="text" wire:model="contributed_by" class="field" placeholder="Who gave you this recipe?" />
+            @error('contributed_by') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
             <label for="visibility" class="label">Who can see it</label>

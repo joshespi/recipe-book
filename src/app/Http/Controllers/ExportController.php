@@ -65,6 +65,7 @@ class ExportController extends Controller
             'total_minutes' => $recipe->total_minutes,
             'source_name' => $recipe->source_name,
             'source_url' => $recipe->source_url,
+            'contributed_by' => $recipe->contributed_by,
             'notes' => $recipe->notes,
             'visibility' => $recipe->visibility,
             'favorite' => $recipe->is_favorite,
@@ -130,6 +131,10 @@ class ExportController extends Controller
         }
         if ($recipe->source_name || $recipe->source_url) {
             $md[] = 'Source: '.trim(($recipe->source_name ?? '').' '.($recipe->source_url ? '<'.$recipe->source_url.'>' : ''));
+        }
+
+        if ($recipe->contributed_by) {
+            $md[] = 'Contributed by: '.$recipe->contributed_by;
         }
 
         return implode("\n\n", $md);

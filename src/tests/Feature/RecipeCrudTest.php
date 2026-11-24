@@ -67,6 +67,28 @@ class RecipeCrudTest extends TestCase
         $this->assertSame(5, $recipe->steps->first()->timer_minutes);
     }
 
+    public function test_contributed_by_is_saved_and_blank_becomes_null(): void
+    {
+        Livewire::test(Form::class)
+            ->set('title', 'Gran\'s Soup')
+            ->set('contributed_by', 'Grandma Rosa')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $recipe = Recipe::firstOrFail();
+        $this->assertSame('Grandma Rosa', $recipe->contributed_by);
+        $this->assertSame($this->owner->id, $recipe->user_id);
+        $this->assertSame(1, Recipe::search('rosa')->count());
+
+        Livewire::test(Form::class, ['recipe' => $recipe])
+            ->assertSet('contributed_by', 'Grandma Rosa')
+            ->set('contributed_by', '')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull($recipe->fresh()->contributed_by);
+    }
+
     public function test_title_is_required_and_source_url_must_be_http(): void
     {
         Livewire::test(Form::class)

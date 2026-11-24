@@ -34,7 +34,7 @@ class Recipe extends Model
     protected $fillable = [
         'title', 'description', 'servings', 'yield_label',
         'prep_minutes', 'cook_minutes', 'total_minutes',
-        'source_name', 'source_url', 'notes',
+        'source_name', 'source_url', 'contributed_by', 'notes',
         'visibility', 'is_favorite', 'rating',
     ];
 
@@ -213,6 +213,7 @@ class Recipe extends Model
         return $query->where(function (Builder $q) use ($like) {
             $q->where('title', 'like', $like)
                 ->orWhere('description', 'like', $like)
+                ->orWhere('contributed_by', 'like', $like)
                 ->orWhereHas('ingredients', fn (Builder $i) => $i->where('name', 'like', $like));
         });
     }

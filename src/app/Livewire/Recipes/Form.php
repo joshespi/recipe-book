@@ -69,6 +69,8 @@ class Form extends Component
 
     public string $source_url = '';
 
+    public string $contributed_by = '';
+
     public string $notes = '';
 
     public string $visibility = Recipe::UNLISTED;
@@ -108,6 +110,7 @@ class Form extends Component
         $this->cook_minutes = self::nullableString($recipe->cook_minutes);
         $this->source_name = (string) $recipe->source_name;
         $this->source_url = (string) $recipe->source_url;
+        $this->contributed_by = (string) $recipe->contributed_by;
         $this->notes = (string) $recipe->notes;
         $this->visibility = $recipe->visibility;
         $this->categoryIds = $recipe->categories->pluck('id')->all();
@@ -252,6 +255,7 @@ class Form extends Component
             'cook_minutes' => 'nullable|integer|min:0|max:10000',
             'source_name' => 'nullable|string|max:255',
             'source_url' => 'nullable|url:http,https|max:2048',
+            'contributed_by' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:10000',
             'visibility' => ['required', Rule::in(Recipe::VISIBILITIES)],
             'categoryIds' => 'array',
@@ -282,6 +286,7 @@ class Form extends Component
             'total_minutes' => $prep !== null || $cook !== null ? ($prep ?? 0) + ($cook ?? 0) : null,
             'source_name' => $data['source_name'] ?: null,
             'source_url' => $data['source_url'] ?: null,
+            'contributed_by' => $data['contributed_by'] ?: null,
             'notes' => $data['notes'] ?: null,
             'visibility' => $data['visibility'],
         ];

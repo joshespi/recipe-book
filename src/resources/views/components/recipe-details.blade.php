@@ -47,3 +47,7 @@
         @endif
     </p>
 @endif
+
+@if ($recipe->contributed_by)
+    <p class="text-sm text-stone-500">Contributed by: {{ $recipe->contributed_by }}</p>
+@endif

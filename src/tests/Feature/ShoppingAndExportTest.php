@@ -117,7 +117,7 @@ class ShoppingAndExportTest extends TestCase
 
     private function exportable(User $user): Recipe
     {
-        $recipe = Recipe::factory()->for($user)->create(['title' => 'Chili', 'servings' => 6, 'notes' => 'Better next day']);
+        $recipe = Recipe::factory()->for($user)->create(['title' => 'Chili', 'servings' => 6, 'notes' => 'Better next day', 'contributed_by' => 'Aunt May']);
         $recipe->categories()->attach(Category::create(['name' => 'Dinner', 'color' => 'red']));
         $recipe->tags()->sync(Tag::fromText('spicy')->pluck('id'));
         $group = $recipe->ingredientGroups()->create(['name' => 'Base', 'position' => 0]);
@@ -142,6 +142,7 @@ class ShoppingAndExportTest extends TestCase
         $this->assertCount(1, $data['recipes']);
         $r = $data['recipes'][0];
         $this->assertSame('Chili', $r['title']);
+        $this->assertSame('Aunt May', $r['contributed_by']);
         $this->assertSame(['Dinner'], $r['categories']);
         $this->assertSame(['spicy'], $r['tags']);
         $this->assertSame('Base', $r['ingredients'][0]['group']);
@@ -165,6 +166,7 @@ class ShoppingAndExportTest extends TestCase
         $this->assertStringContainsString('1. Simmer for an hour.', $md);
         $this->assertStringContainsString('Better next day', $md);
         $this->assertStringContainsString('Serves: 6', $md);
+        $this->assertStringContainsString('Contributed by: Aunt May', $md);
     }
 
     public function test_exports_require_login(): void
