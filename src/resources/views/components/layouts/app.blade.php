@@ -6,12 +6,12 @@
         @livewireStyles
     </head>
     <body class="min-h-screen bg-stone-50 text-stone-800 antialiased dark:bg-stone-950 dark:text-stone-200">
-        <header class="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-900/80 print:hidden"
+        <header class="masthead print:hidden"
                 x-data="{ open: false }">
-            <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-                <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400" wire:navigate>
+            <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 lg:px-8">
+                <a href="{{ route('home') }}" aria-label="{{ config('app.name') }}" class="flex shrink-0 items-center gap-2.5 font-serif text-xl font-semibold tracking-tight" wire:navigate>
                     <img src="/icons/logo.png" alt="" class="size-9 rounded-lg" width="36" height="36">
-                    <span class="hidden sm:inline">{{ config('app.name') }}</span>
+                    <span class="hidden lg:inline">{{ config('app.name') }}</span>
                 </a>
 
                 <nav class="ml-2 hidden items-center gap-1 text-sm md:flex">
@@ -25,7 +25,7 @@
 
                 <div class="ml-auto flex items-center gap-2">
                     @auth
-                        <a href="{{ route('recipes.create') }}" class="hidden rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 sm:inline-block" wire:navigate>New recipe</a>
+                        <a href="{{ route('recipes.create') }}" class="btn-primary hidden sm:inline-flex" wire:navigate>New recipe</a>
                     @endauth
 
                     <div x-data class="flex items-center rounded-lg border border-stone-200 p-0.5 dark:border-stone-700" role="radiogroup" aria-label="Theme">
@@ -34,7 +34,7 @@
                                     :aria-checked="$flux.appearance === '{{ $mode }}'"
                                     x-on:click="$flux.appearance = '{{ $mode }}'"
                                     class="rounded-md p-1.5 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
-                                    :class="$flux.appearance === '{{ $mode }}' && 'bg-red-100 text-red-800 dark:bg-stone-700 dark:text-red-300'">
+                                    :class="$flux.appearance === '{{ $mode }}' && 'bg-herb-100 text-herb-800 dark:bg-stone-700 dark:text-herb-300'">
                                 <flux:icon :name="$icon" class="size-4" />
                             </button>
                         @endforeach
@@ -58,7 +58,7 @@
                         <a href="{{ route('login') }}" class="text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white">Log in</a>
                     @endauth
 
-                    <button type="button" class="rounded-md p-1.5 md:hidden" x-on:click="open = !open" aria-label="Menu">
+                    <button type="button" class="rounded-md p-1.5 md:hidden" x-on:click="open = !open" aria-label="Menu" :aria-expanded="open">
                         <flux:icon name="bars-2" class="size-5" />
                     </button>
                 </div>
@@ -75,7 +75,7 @@
             </nav>
         </header>
 
-        <main class="mx-auto max-w-6xl px-4 py-6 print:max-w-none print:p-0">
+        <main class="mx-auto max-w-6xl px-4 py-8 lg:px-8 lg:py-10 print:max-w-none print:p-0">
             @if (session('status'))
                 <p class="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 print:hidden" role="status">{{ session('status') }}</p>
             @endif

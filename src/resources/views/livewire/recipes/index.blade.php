@@ -1,10 +1,10 @@
-<div class="space-y-5">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="text-2xl font-semibold tracking-tight">Recipes <span class="text-base font-normal text-stone-500">({{ $total }})</span></h1>
-        <a href="{{ route('recipes.create') }}" class="btn-primary" wire:navigate>+ New recipe</a>
+<div class="space-y-6">
+    <div class="collection-heading">
+        <h1>Recipes <span class="collection-count">{{ $total }}</span></h1>
+        <a href="{{ route('recipes.create') }}" class="btn-primary" wire:navigate><flux:icon name="plus" class="icon-inline" /> New recipe</a>
     </div>
 
-    <div class="card space-y-3 p-3">
+    <div class="card space-y-4 p-4 sm:p-5">
         <div class="flex flex-wrap items-center gap-2">
             <input type="search" wire:model.live.debounce.300ms="search" placeholder="Search titles, descriptions and ingredients…"
                    class="field min-w-0 flex-1" aria-label="Search recipes" />
@@ -18,8 +18,8 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="favoritesOnly" class="rounded border-stone-300 text-red-600 focus:ring-red-500"> Favorites</label>
-            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="withPhotos" class="rounded border-stone-300 text-red-600 focus:ring-red-500"> Has photos</label>
+            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="favoritesOnly" class="rounded border-stone-300 text-herb-600 focus:ring-herb-500"> Favorites</label>
+            <label class="inline-flex items-center gap-1.5"><input type="checkbox" wire:model.live="withPhotos" class="rounded border-stone-300 text-herb-600 focus:ring-herb-500"> Has photos</label>
 
             @if ($categories->isNotEmpty())
                 <span class="hidden h-4 w-px bg-stone-300 sm:block dark:bg-stone-700"></span>
@@ -34,7 +34,7 @@
             @endif
 
             @if ($filtered)
-                <button type="button" wire:click="clearFilters" class="ml-auto text-red-700 underline dark:text-red-400">Clear filters</button>
+                <button type="button" wire:click="clearFilters" class="ml-auto text-herb-700 underline dark:text-herb-400">Clear filters</button>
             @endif
         </div>
 
@@ -42,7 +42,7 @@
             <div class="flex flex-wrap gap-1.5 text-xs" aria-label="Tags">
                 @foreach ($tags as $t)
                     <button type="button" wire:click="toggleTag('{{ $t->slug }}')" aria-pressed="{{ $tag === $t->slug ? 'true' : 'false' }}"
-                            class="rounded-full border px-2.5 py-0.5 {{ $tag === $t->slug ? 'border-red-600 bg-red-600 text-white' : 'border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800' }}">#{{ $t->name }}</button>
+                            class="rounded-full border px-2.5 py-0.5 {{ $tag === $t->slug ? 'border-herb-600 bg-herb-600 text-white' : 'border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800' }}">#{{ $t->name }}</button>
                 @endforeach
             </div>
         @endif
@@ -53,22 +53,23 @@
             @if ($filtered)
                 <p>No recipes match those filters.</p>
             @else
-                <p class="text-lg">Your recipe box is empty.</p>
+                <img src="/icons/logo.png" alt="" class="mx-auto mb-5 size-16 -rotate-6">
+                <p class="mb-2 font-serif text-2xl">Your recipe box is empty.</p>
                 <a href="{{ route('recipes.create') }}" class="btn-primary mt-4" wire:navigate>Add your first recipe</a>
             @endif
         </div>
     @else
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($recipes as $recipe)
                 <x-recipe-card :recipe="$recipe" :href="route('recipes.show', $recipe)" wire:key="recipe-{{ $recipe->id }}">
                     <button type="button" wire:click="toggleFavorite({{ $recipe->id }})"
                             class="absolute top-2 right-2 rounded-full bg-white/90 p-1.5 text-lg leading-none shadow dark:bg-stone-900/90"
                             aria-label="{{ $recipe->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}"
                             aria-pressed="{{ $recipe->is_favorite ? 'true' : 'false' }}">
-                        <span class="{{ $recipe->is_favorite ? 'text-red-500' : 'text-stone-400' }}">{{ $recipe->is_favorite ? '♥' : '♡' }}</span>
+                        <span class="{{ $recipe->is_favorite ? 'text-amber-500' : 'text-stone-400' }}">{{ $recipe->is_favorite ? '♥' : '♡' }}</span>
                     </button>
                     @if ($recipe->visibility !== 'unlisted')
-                        <span class="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium shadow dark:bg-stone-900/90">{{ $recipe->visibility === 'public' ? '🌐 Public' : '🔒 Private' }}</span>
+                        <span class="absolute top-2 left-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium shadow dark:bg-stone-900/90">{{ $recipe->visibility === 'public' ? 'Public' : 'Private' }}</span>
                     @endif
                 </x-recipe-card>
             @endforeach

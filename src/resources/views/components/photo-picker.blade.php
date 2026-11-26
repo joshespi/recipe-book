@@ -7,7 +7,7 @@
      x-on:livewire-upload-progress="progress = $event.detail.progress"
      class="space-y-2">
     <label class="btn-secondary cursor-pointer">
-        📷 Add photos
+        <flux:icon name="camera" class="icon-inline" /> Add photos
         <input type="file" wire:model="{{ $model }}" multiple accept="image/jpeg,image/png,image/webp,image/*" class="sr-only" />
     </label>
     <span x-show="busy" x-cloak class="ml-2 text-sm text-stone-500">Uploading… <span x-text="progress"></span>%</span>

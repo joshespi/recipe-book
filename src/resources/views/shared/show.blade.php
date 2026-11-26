@@ -43,13 +43,13 @@
     <article class="space-y-6">
         <header class="grid gap-5 md:grid-cols-5">
             <div class="space-y-3 md:col-span-3">
-                <h1 class="text-3xl font-semibold tracking-tight">{{ $recipe->title }}</h1>
+                <h1>{{ $recipe->title }}</h1>
                 <x-recipe-details :recipe="$recipe" shared />
 
 
                 <div class="flex flex-wrap gap-2 print:hidden">
-                    <a href="{{ route('shared.cook', $recipe->share_token) }}" class="btn-primary" x-data x-on:click="$el.search = location.search">👩‍🍳 Cook mode</a>
-                    <button type="button" onclick="window.print()" class="btn-secondary">🖨️ Print</button>
+                    <a href="{{ route('shared.cook', $recipe->share_token) }}" class="btn-primary" x-data x-on:click="$el.search = location.search"><flux:icon name="fire" class="icon-inline" /> Cook mode</a>
+                    <button type="button" onclick="window.print()" class="btn-secondary"><flux:icon name="printer" class="icon-inline" /> Print</button>
                 </div>
             </div>
 

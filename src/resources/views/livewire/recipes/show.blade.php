@@ -3,10 +3,10 @@
     <header class="grid gap-5 md:grid-cols-5">
         <div class="space-y-3 md:col-span-3">
             <div class="flex items-start gap-3">
-                <h1 class="flex-1 text-3xl font-semibold tracking-tight">{{ $recipe->title }}</h1>
+                <h1 class="flex-1">{{ $recipe->title }}</h1>
                 <button type="button" wire:click="toggleFavorite" class="print:hidden text-2xl leading-none"
                         aria-label="{{ $recipe->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}" aria-pressed="{{ $recipe->is_favorite ? 'true' : 'false' }}">
-                    <span class="{{ $recipe->is_favorite ? 'text-red-500' : 'text-stone-400' }}">{{ $recipe->is_favorite ? '♥' : '♡' }}</span>
+                    <span class="{{ $recipe->is_favorite ? 'text-amber-500' : 'text-stone-400' }}">{{ $recipe->is_favorite ? '♥' : '♡' }}</span>
                 </button>
             </div>
 
@@ -14,15 +14,15 @@
 
             <div class="flex items-center gap-1 print:hidden" role="group" aria-label="Rating">
                 @foreach (range(1, 5) as $star)
-                    <button type="button" wire:click="setRating({{ $star }})" class="text-2xl leading-none {{ $recipe->rating && $star <= $recipe->rating ? 'text-red-500' : 'text-stone-300 dark:text-stone-600' }}" aria-label="Rate {{ $star }} of 5">★</button>
+                    <button type="button" wire:click="setRating({{ $star }})" class="text-2xl leading-none {{ $recipe->rating && $star <= $recipe->rating ? 'text-amber-500' : 'text-stone-300 dark:text-stone-600' }}" aria-label="Rate {{ $star }} of 5">★</button>
                 @endforeach
             </div>
 
             <div class="flex flex-wrap gap-2 pt-1 print:hidden">
-                <a href="{{ route('recipes.cook', $recipe) }}" class="btn-primary" x-data x-on:click="$el.search = location.search">👩‍🍳 Cook mode</a>
-                <a href="{{ route('recipes.edit', $recipe) }}" class="btn-secondary" wire:navigate>✏️ Edit</a>
-                <button type="button" onclick="window.print()" class="btn-secondary">🖨️ Print</button>
-                <button type="button" wire:click="duplicate" class="btn-secondary">⧉ Duplicate</button>
+                <a href="{{ route('recipes.cook', $recipe) }}" class="btn-primary" x-data x-on:click="$el.search = location.search"><flux:icon name="fire" class="icon-inline" /> Cook mode</a>
+                <a href="{{ route('recipes.edit', $recipe) }}" class="btn-secondary" wire:navigate><flux:icon name="pencil-square" class="icon-inline" /> Edit</a>
+                <button type="button" onclick="window.print()" class="btn-secondary"><flux:icon name="printer" class="icon-inline" /> Print</button>
+                <button type="button" wire:click="duplicate" class="btn-secondary"><flux:icon name="document-duplicate" class="icon-inline" /> Duplicate</button>
                 <button type="button" wire:click="delete" wire:confirm="Delete this recipe? It can be restored from a backup but not from the app." class="btn-danger">Delete</button>
             </div>
         </div>
@@ -47,9 +47,9 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-semibold">Sharing</h2>
             <select wire:change="setVisibility($event.target.value)" class="field w-auto" aria-label="Who can see this recipe">
-                <option value="private" @selected($recipe->visibility === 'private')>🔒 Private - only me</option>
-                <option value="unlisted" @selected($recipe->visibility === 'unlisted')>🔗 Anyone with the link</option>
-                <option value="public" @selected($recipe->visibility === 'public')>🌐 Public - listed on Browse</option>
+                <option value="private" @selected($recipe->visibility === 'private')>Private - only me</option>
+                <option value="unlisted" @selected($recipe->visibility === 'unlisted')>Anyone with the link</option>
+                <option value="public" @selected($recipe->visibility === 'public')>Public - listed on Browse</option>
             </select>
         </div>
 

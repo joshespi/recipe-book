@@ -27,7 +27,7 @@
                     <button type="button" x-on:click="show({{ $n }})" class="relative block w-full" aria-label="Open photo {{ $n + 1 }}">
                         <img src="{{ $photo->thumbUrl() }}" alt="{{ $photo->caption ?: $recipe->title.' photo' }}" loading="lazy" class="aspect-square w-full object-cover" />
                         @if ($recipe->cover_photo_id === $photo->id)
-                            <span class="absolute top-1.5 left-1.5 rounded-full bg-red-600 px-2 py-0.5 text-xs font-medium text-white">Cover</span>
+                            <span class="absolute top-1.5 left-1.5 rounded-full bg-herb-600 px-2 py-0.5 text-xs font-medium text-white">Cover</span>
                         @endif
                         @unless ($photo->isProcessed())
                             <span class="absolute right-1.5 bottom-1.5 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">{{ $photo->isPending() ? 'Processing…' : 'Could not process' }}</span>

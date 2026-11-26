@@ -11,7 +11,32 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Warm neutrals: Flux's zinc scale is remapped to Tailwind's stone scale. */
+    --font-serif: 'Spectral', Georgia, serif;
+    --color-herb-50: #eff5ed;
+    --color-herb-100: #ddeada;
+    --color-herb-200: #c3d9bc;
+    --color-herb-300: #a7c8a3;
+    --color-herb-400: #87b494;
+    --color-herb-500: #528267;
+    --color-herb-600: #346347;
+    --color-herb-700: #29523e;
+    --color-herb-800: #204a3a;
+    --color-herb-900: #183a2d;
+    --color-herb-950: #10271f;
+    --color-paper: #fffdf7;
+
+    --color-stone-50: #f7f4eb;
+    --color-stone-100: #efede2;
+    --color-stone-200: #dedbcd;
+    --color-stone-300: #c6c4b7;
+    --color-stone-400: #999d90;
+    --color-stone-500: #686f62;
+    --color-stone-600: #515a4e;
+    --color-stone-700: #3c483e;
+    --color-stone-800: #2c372f;
+    --color-stone-900: #202923;
+    --color-stone-950: #151c18;
+
     --color-zinc-50: var(--color-stone-50);
     --color-zinc-100: var(--color-stone-100);
     --color-zinc-200: var(--color-stone-200);
@@ -24,15 +49,15 @@
     --color-zinc-900: var(--color-stone-900);
     --color-zinc-950: var(--color-stone-950);
 
-    --color-accent: var(--color-red-600);
-    --color-accent-content: var(--color-red-700);
+    --color-accent: var(--color-herb-600);
+    --color-accent-content: var(--color-herb-700);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-red-500);
-        --color-accent-content: var(--color-red-400);
+        --color-accent: var(--color-herb-500);
+        --color-accent-content: var(--color-herb-400);
         --color-accent-foreground: var(--color-stone-950);
     }
 }
@@ -75,25 +100,78 @@ select:focus[data-flux-control] {
 /* Shared form + card building blocks used across the recipe views. */
 @layer components {
     .field {
-        @apply w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-xs placeholder:text-stone-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/30 focus:outline-hidden dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500;
+        @apply w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-xs placeholder:text-stone-400 focus:border-herb-500 focus:ring-2 focus:ring-herb-500/30 focus:outline-hidden dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500;
     }
     .label {
         @apply mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300;
     }
     .btn {
-        @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50;
     }
     .btn-primary {
-        @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-50 bg-red-600 text-white hover:bg-red-700;
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 bg-herb-800 text-white hover:bg-herb-900 dark:bg-herb-300 dark:text-herb-950 dark:hover:bg-herb-200;
     }
     .btn-secondary {
-        @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-50 border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800;
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800;
     }
     .btn-danger {
-        @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-50 border border-red-300 bg-white text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-stone-900 dark:text-red-400 dark:hover:bg-red-950;
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 border border-red-300 bg-white text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-stone-900 dark:text-red-400 dark:hover:bg-red-950;
     }
     .card {
-        @apply rounded-xl border border-stone-200 bg-white shadow-xs dark:border-stone-800 dark:bg-stone-900;
+        @apply rounded-2xl border border-stone-200 bg-paper shadow-[0_3px_12px_-8px_#3c483e55] dark:border-stone-800 dark:bg-stone-900;
+    }
+    /* Heroicon sitting inline with button/label text. */
+    .icon-inline {
+        @apply inline-block size-4 shrink-0 align-[-0.15em];
+    }
+}
+
+.masthead {
+    @apply border-t-4 border-t-herb-800 border-b border-b-stone-200 bg-paper dark:border-t-herb-400 dark:border-b-stone-800 dark:bg-stone-900;
+}
+.collection-heading {
+    @apply flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl border border-herb-900 px-5 py-8 text-herb-100 sm:px-9 sm:py-11;
+    background-color: var(--color-herb-800);
+    background-image: repeating-linear-gradient(90deg, transparent 0 6px, #ffffff04 6px 7px);
+    box-shadow: inset 0 -5px 0 var(--color-herb-900), inset 0 -6px 0 #d6c49a;
+}
+.collection-heading .btn-primary {
+    @apply bg-[#f3e7bf] text-herb-950 hover:bg-white;
+}
+.collection-count {
+    @apply inline-flex align-middle rounded-full bg-herb-100 px-3 py-1 font-sans text-sm font-semibold tracking-normal text-herb-800 dark:bg-herb-900 dark:text-herb-200;
+}
+.bookcloth {
+    --bookcloth-thread: #46644912;
+    background-color: #dfe7d7;
+    background-image: repeating-linear-gradient(0deg, transparent 0 5px, var(--bookcloth-thread) 5px 6px),
+                      repeating-linear-gradient(90deg, transparent 0 5px, var(--bookcloth-thread) 5px 6px);
+}
+.dark .bookcloth {
+    --bookcloth-thread: #c0d1af12;
+    background-color: #273c31;
+}
+/* Base layer so per-element utilities (text-lg, font-semibold, …) still override. */
+@layer base {
+    h1, h2 {
+        font-family: var(--font-serif);
+    }
+    main h1, .collection-heading h1 {
+        @apply text-[clamp(2.25rem,5vw,3.75rem)] font-medium leading-[1.08] tracking-tight text-herb-900 dark:text-herb-100;
+    }
+    .collection-heading h1 {
+        @apply text-[#fff5d7];
+    }
+    main h2 {
+        @apply text-2xl font-medium leading-tight;
+    }
+    input[type="checkbox"] {
+        accent-color: var(--color-herb-600);
+    }
+    /* Flux controls draw their own ring (see [data-flux-control] above). */
+    :focus-visible:not([data-flux-control]) {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
     }
 }
 
